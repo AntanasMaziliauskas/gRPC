@@ -50,6 +50,7 @@ func (a *Application) Start() {
 
 }
 
+//TODO: Keliauja prie grpcHandler
 func (a *Application) SayHello(ctx context.Context, in *api.Handshake) (*api.Timeout, error) {
 
 	log.Printf("Received message: %s. Port: %s", in.Id, in.Port)
@@ -67,6 +68,7 @@ func (a *Application) SayHello(ctx context.Context, in *api.Handshake) (*api.Tim
 	return &api.Timeout{Timeout: a.timeout}, nil
 }
 
+//TODO: Keliauja prie HTTPHandler
 func (a *Application) HTTPHandleGet() {
 	//	p, err := a.Broker.GetOnePersonBroadcast(...)
 	//w.Write(json(p))

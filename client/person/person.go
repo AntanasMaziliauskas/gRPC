@@ -11,3 +11,5 @@ type PersonService interface {
 
 	*/
 }
+
+//Dokumento nuskaitymas i struktura
