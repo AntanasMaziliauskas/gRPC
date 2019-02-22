@@ -1,0 +1,38 @@
+syntax = "proto3";
+package api;
+
+//Node sends his ID at first contact
+message Node {
+  string id = 1;
+  string port = 2;
+}
+//Timeout is the time interval for checking the connection with the Node
+message Timeout {
+    int64 Timeout = 1;
+}
+//PingMessage is for checking the connection between the Node and the server
+message PingMessage {
+    string id = 1;
+  }
+message Empty {
+}
+
+message LookFor {
+    string id = 1;
+}
+message Found {
+    string id =1;
+    string name =2;
+    int64 age = 3;
+}
+
+service Greeting {
+  rpc SayHello(Node) returns (Timeout) {}
+}
+
+service Ping {
+    rpc PingMe(PingMessage) returns (Empty) {}
+}
+service LookForData {
+    rpc FindData(LookFor) returns (Found) {}
+}
