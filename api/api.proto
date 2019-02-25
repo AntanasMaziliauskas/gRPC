@@ -18,12 +18,12 @@ message Empty {
 }
 
 message LookFor {
-    string id = 1;
+    string name = 1;
 }
 message Found {
-    string id =1;
-    string name =2;
-    int64 age = 3;
+    string name =1;
+    int64 age =2;
+    string profession = 3;
 }
 
 service Greeting {

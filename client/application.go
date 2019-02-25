@@ -2,32 +2,45 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"net"
+	"time"
 
 	"github.com/AntanasMaziliauskas/grpc/api"
+	"github.com/AntanasMaziliauskas/grpc/client/person"
 	"google.golang.org/grpc"
 )
 
 type Application struct {
-	conn *grpc.ClientConn
+	conn       *grpc.ClientConn
+	Port       string
+	ID         string
+	ServerPort string
+	lis        net.Listener
+	grpcServer *grpc.Server
+	Timeout    int64
+	Path       string
+	Person     person.PersonService
 }
 
 func (a *Application) Init() {
-	var err error
-	//Connecting to the server
-	a.conn, err = grpc.Dial(":7777", grpc.WithInsecure())
-	if err != nil {
-		log.Fatalf("did not connect: %s", err)
-	}
+
+	a.Person.Init()
+
+	a.ConnectToServer()
+
+	a.SettingServer()
 
 }
 func (a *Application) Start() {
-	c := api.NewGreetingClient(a.conn)
-	response, err := c.SayHello(context.Background(), &api.Handshake{Id: "Node003", Port: "7778"})
-	if err != nil {
-		log.Fatalf("Error when calling SayHello: %s", err)
-	}
-	log.Printf("Timeout in: %d seconds", response.Timeout)
+
+	a.GreetingWithServer()
+
+	a.PingServer()
+
+	a.StartServer()
+
 }
 
 func (a *Application) Stop() {
@@ -36,74 +49,75 @@ func (a *Application) Stop() {
 }
 
 //Pasiruosimas connectionui su serveriu |Init Susijungimas su serveriu
+func (a *Application) ConnectToServer() {
+	var err error
+	//Connecting to the server
+	a.conn, err = grpc.Dial(fmt.Sprintf(":%s", a.ServerPort), grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("did not connect: %s", err)
+	}
+}
 
 //Connectionas su serveriu | Start Pasisveikinimo issiuntimas serveriui
+func (a *Application) GreetingWithServer() {
+	a.Person.Init()
+	c := api.NewGreetingClient(a.conn)
+	response, err := c.SayHello(context.Background(), &api.Node{Id: a.ID, Port: a.ServerPort})
+	if err != nil {
+		log.Fatalf("Error when calling SayHello: %s", err)
+	}
+	log.Printf("Timeout in: %d seconds", response.Timeout)
+	a.Timeout = response.Timeout
+}
 
 //Pasiruosimas jungti serveri |INIT
+func (a *Application) SettingServer() {
+	var err error
+	var s Application
+	a.lis, err = net.Listen("tcp", fmt.Sprintf(":%s", a.Port))
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+
+	// create a gRPC server object
+	a.grpcServer = grpc.NewServer()
+	// attach the Greeting service to the server
+	api.RegisterLookForDataServer(a.grpcServer, &s)
+}
 
 //Listeneris serverio |START
-
-//Pasisveikinimo priimimas is Node kliento
+func (a *Application) StartServer() {
+	if err := a.grpcServer.Serve(a.lis); err != nil {
+		log.Fatalf("failed to serve: %s", err)
+	}
+}
 
 //Pinginimo siuntimas serveriui | Start GO rutina
-
-//Ateinancios uzklausos priimimas ir vykdymas - GetOne
-
-/*MAINE SITIE DALYKAI
-//NUSKAITOM CONFIG
-if config, err = trapserver.ReadConfig(c.GlobalString("config")); err != nil {
-		return err
-	}
-	//Defaults nustatom
-	config.ApplyDefaults()
-
-//SITIE APPLICATIONE PALIEKA
-//ReadConfig function decodes config file
-func ReadConfig(path string) (c Config, err error) {
-	_, err = toml.DecodeFile(path, &c)
-	return c, err
+func (a *Application) PingServer() {
+	p := api.NewPingClient(a.conn)
+	go func() {
+		ticker := time.NewTicker(time.Duration(a.Timeout) / 2 * time.Second)
+		for {
+			select {
+			case <-ticker.C:
+				log.Printf("Pinging")
+				_, err := p.PingMe(context.Background(), &api.PingMessage{Id: a.ID})
+				if err != nil {
+					log.Fatalf("Error when calling PingMe: %s", err)
+				}
+				//log.Printf("Response from server: %d", response)
+				//wg.Done()
+			}
+		}
+	}()
 }
-//Struktura config
-type Config struct {
-	SNMP struct {
-		Listen string
-	}
-	HTTP struct {
-		Listen string
-	}
-	Telegram struct {
-		Enable    bool
-		ChannelID int64
-		Token     string
-	}
-// defaultai
-func (c *Config) ApplyDefaults() {
 
-	//SNMP
-	if c.SNMP.Listen == "" {
-		c.SNMP.Listen = "0.0.0.0:8000"
-	}
-	//HTTP
-	if c.HTTP.Listen == "" {
-		c.HTTP.Listen = "0.0.0.0:9162"
-	}
-
-
-	PATS CONFIGAS:
-	name.toml
-	HTTP]
-listen = "0.0.0.0:8000"
-
-[SNMP]
-listen = "0.0.0.0:9162"
-
-#You can set Telegram enable to true if you want to received Logrus logs via Telegram
-#channelID is Telegram Channel ID
-#token is Telegram BOT token needed for authenticatin the bot
-[Telegram]
-enable = false
-channelID = -1
-token = " "
-
-
-*/
+//Ateinancios uzklausos priimimas ir vykdymas
+func (a *Application) FindData(ctx context.Context, in *api.LookFor) (*api.Found, error) {
+	name := in.Name
+	//TODO: Kodel negaliu naudoti butent cia?
+	//a.Person.Init()
+	//	found, _ := a.Person.GetOne(name)
+	//return &api.Found{Name: found.Name, Age: found.Age, Profession: found.Profession}, nil
+	return &api.Found{Name: name}, nil
+}

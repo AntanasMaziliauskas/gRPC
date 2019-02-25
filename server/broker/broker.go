@@ -1,26 +1,24 @@
 package broker
 
 import (
-	"log"
+	"fmt"
 	"time"
 
 	"github.com/AntanasMaziliauskas/grpc/api"
 	"google.golang.org/grpc"
 )
 
-type Broker interface {
+type BrokerService interface {
 	Init() error
-
 	// Startas suks cikla per visus nodes ir ieskos pas ka last_seen yra mazas
 	// ir atliks DropNode jei yra timeout
 	Start() error
 	//Sustabdo start cikla
 	Stop() error
-
 	// api.Node | Receivinu info is Node ir uzmezgu connection.
-	AddNode(*api.Handshake) error
+	AddNode(*api.Node) error
 	//Istrinu Node is saraso
-	DropNode(node string) error
+	//DropNode(node string) error
 	//Updatinu Last Seen, kuomet gaunu ping
 	ReceivedPing() // paupdeitini last seen
 	//Returninu Node sarasa. Kam sito reikia? HHTP, kad atvaizduoti gal
@@ -54,17 +52,22 @@ type Node struct {
 
 func (g *GRPCBroker) Init() error { return nil }
 
-func (g *GRPCBroker) Start() error { return nil }
+func (g *GRPCBroker) Start() error {
+	fmt.Println("Start")
+
+	return nil
+}
 
 func (g *GRPCBroker) Stop() error { return nil }
 
-func (g *GRPCBroker) AddNode(in *api.Handshake) error {
+func (g *GRPCBroker) AddNode(in *api.Node) error {
 
+	fmt.Println(in)
 	//Connection padarom su Node iskarto
-	conn, err := grpc.Dial(":7778", grpc.WithInsecure()) // Portas ateina is NODE
-	if err != nil {
-		log.Fatalf("did not connect: %s", err)
-	}
+	//conn, err := grpc.Dial(":7778", grpc.WithInsecure()) // Portas ateina is NODE
+	//	if err != nil {
+	//	log.Fatalf("did not connect: %s", err)
+	//	}
 	//Nereikia uzdaryti connection
 	//defer conn.Close()
 
@@ -72,20 +75,24 @@ func (g *GRPCBroker) AddNode(in *api.Handshake) error {
 
 	//TODO: Neaiski vieta. Ar tikrai galim connections deti i map? Ar dedam dar kazka?
 	//Sudedam connectionus i map'a
-	g.Nodes[in.Id] = Node{
-		//	Name:       in.Id,
-		Port:       in.Port,
-		LastSeen:   time.Now(),
-		Connection: conn,
-		//NewLookForDataClient: a (?)
-	}
+	//g.Nodes[in.Id] = Node{
+	//	Name:       in.Id,
+	//		Port:       in.Port,
+	//		LastSeen:   time.Now(),
+	//		Connection: conn,
+	//NewLookForDataClient: a (?)
+	//	}
 	return nil
 }
 
-/*
-func (g *GRPCBroker) DropNode() error { return nil }
+//func (g *GRPCBroker) DropNode(node string) error { return nil }
 
-func (g *GRPCBroker) ReceivePing() error { return nil }
+func (g *GRPCBroker) ReceivedPing() {
+	fmt.Println("Received Ping")
+	//return nil
+}
+
+/*
 
 func (g *GRPCBroker) ListNodes() error { return nil }
 
