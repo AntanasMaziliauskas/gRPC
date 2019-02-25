@@ -7,25 +7,25 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/AntanasMaziliauskas/grpc/client"
-	"github.com/AntanasMaziliauskas/grpc/client/person"
+	"github.com/AntanasMaziliauskas/grpc/node"
+	"github.com/AntanasMaziliauskas/grpc/node/person"
 )
 
 //FLAGAs Config failas
 //Config Node ID, Portas, kur jungtis, Koks mano portas.
 func main() {
-	var config client.Config
+	var config node.Config
 	var err error
 	//Flag
 	conf := flag.String("config", "config.toml", "Config file to be used")
 	flag.Parse()
 
-	if config, err = client.ReadConfig(*conf); err != nil {
+	if config, err = node.ReadConfig(*conf); err != nil {
 		log.Fatalf("Could not read config file: %s", err)
 	}
 	config.ApplyDefaults()
 
-	app := client.Application{
+	app := node.Application{
 		Port:       config.Node.Port,
 		ID:         config.Node.ID,
 		ServerPort: config.Server.Port,
@@ -40,7 +40,7 @@ func main() {
 	//app.Stop()
 
 	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt, syscall.SIGTERM, syscall.SIGSTOP, syscall.SIGKILL)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM, syscall.SIGKILL)
 
 	<-stop
 

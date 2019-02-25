@@ -1,4 +1,4 @@
-package client
+package node
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/AntanasMaziliauskas/grpc/api"
-	"github.com/AntanasMaziliauskas/grpc/client/person"
+	"github.com/AntanasMaziliauskas/grpc/node/person"
 	"google.golang.org/grpc"
 )
 
@@ -73,7 +73,7 @@ func (a *Application) GreetingWithServer() {
 //Pasiruosimas jungti serveri |INIT
 func (a *Application) SettingServer() {
 	var err error
-	var s Application
+	//	var s Application
 	a.lis, err = net.Listen("tcp", fmt.Sprintf(":%s", a.Port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
@@ -82,7 +82,7 @@ func (a *Application) SettingServer() {
 	// create a gRPC server object
 	a.grpcServer = grpc.NewServer()
 	// attach the Greeting service to the server
-	api.RegisterLookForDataServer(a.grpcServer, &s)
+	api.RegisterLookForDataServer(a.grpcServer, a)
 }
 
 //Listeneris serverio |START
@@ -116,8 +116,8 @@ func (a *Application) PingServer() {
 func (a *Application) FindData(ctx context.Context, in *api.LookFor) (*api.Found, error) {
 	name := in.Name
 	//TODO: Kodel negaliu naudoti butent cia?
-	//a.Person.Init()
-	//	found, _ := a.Person.GetOne(name)
+	_ = a.Person.Init()
+	//_, _ = a.Person.GetOne(name)
 	//return &api.Found{Name: found.Name, Age: found.Age, Profession: found.Profession}, nil
 	return &api.Found{Name: name}, nil
 }

@@ -21,7 +21,7 @@ func main() {
 	//app.Stop()
 
 	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt, syscall.SIGTERM, syscall.SIGSTOP, syscall.SIGKILL)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM, syscall.SIGKILL)
 
 	<-stop
 

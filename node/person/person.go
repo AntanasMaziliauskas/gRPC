@@ -25,7 +25,7 @@ type Person struct {
 }
 
 func (d *DataFromFile) Init() error {
-	d.Data, _ = d.readFile()
+	//d.Data, _ = d.readFile()
 	fmt.Println("Init veikia")
 	return nil
 }
