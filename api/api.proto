@@ -2,9 +2,12 @@ syntax = "proto3";
 package api;
 
 //Node sends his ID at first contact
-message Node {
+message NodeInfo {
   string id = 1;
-  string port = 2;
+  string source = 2;
+}
+message NodesList {
+  repeated NodeInfo Nodes = 1;
 }
 //Timeout is the time interval for checking the connection with the Node
 message Timeout {
@@ -20,12 +23,46 @@ message Empty {
 message LookFor {
     string name = 1;
 }
-message Found {
+message Person {
     string name =1;
     int64 age =2;
     string profession = 3;
 }
 
+service Control {
+  rpc DropNode(NodeInfo) returns (Empty) {}
+  rpc ListNodes(Empty) returns (NodesList) {}
+  rpc GetOnePersonBroadcast(Person) returns (Person) {}
+  /*rpc GetOnePersonNode() returns () {}
+  rpc GetMultiPersonBroadcast() returns () {}
+  rpc GetMultiPersonNode() returns () {}
+  rpc DropOnePersonBroadcast() returns () {}
+  rpc DropOnePersonNode() returns () {}
+  rpc DropMultiPersonBroadcast() returns () {}
+  rpc DropMultiPersonNode() returns () {}
+  rpc InsertOnePersonNode() returns () {}
+  rpc InsertMultiPersonNode() returns () {}*/
+}
+
+service Server {
+  rpc GetOnePersonBroadcast(Person) returns (Person) {}
+  /*rpc GetOnePersonNode() returns () {}
+  rpc GetMultiPersonBroadcast() returns () {}
+  rpc GetMultiPersonNode() returns () {}
+  rpc DropOnePersonBroadcast() returns () {}
+  rpc DropOnePersonNode() returns () {}
+  rpc DropMultiPersonBroadcast() returns () {}
+  rpc DropMultiPersonNode() returns () {}
+  rpc InsertOnePersonNode() returns () {}
+  rpc InsertMultiPersonNode() returns () {}*/
+}
+
+service Node {
+  rpc Ping(PingMessage) returns (Empty) {}
+  rpc AddNode(NodeInfo) returns (Timeout) {}
+}
+
+/*
 service Greeting {
   rpc SayHello(Node) returns (Timeout) {}
 }
@@ -34,5 +71,5 @@ service Ping {
     rpc PingMe(PingMessage) returns (Empty) {}
 }
 service LookForData {
-    rpc FindData(LookFor) returns (Found) {}
-}
+    rpc FindData(LookFor) returns (Person) {}
+}*/

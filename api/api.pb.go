@@ -23,51 +23,90 @@ var _ = math.Inf
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 //Node sends his ID at first contact
-type Node struct {
+type NodeInfo struct {
 	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Port                 string   `protobuf:"bytes,2,opt,name=port,proto3" json:"port,omitempty"`
+	Source               string   `protobuf:"bytes,2,opt,name=source,proto3" json:"source,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *Node) Reset()         { *m = Node{} }
-func (m *Node) String() string { return proto.CompactTextString(m) }
-func (*Node) ProtoMessage()    {}
-func (*Node) Descriptor() ([]byte, []int) {
+func (m *NodeInfo) Reset()         { *m = NodeInfo{} }
+func (m *NodeInfo) String() string { return proto.CompactTextString(m) }
+func (*NodeInfo) ProtoMessage()    {}
+func (*NodeInfo) Descriptor() ([]byte, []int) {
 	return fileDescriptor_00212fb1f9d3bf1c, []int{0}
 }
 
-func (m *Node) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_Node.Unmarshal(m, b)
+func (m *NodeInfo) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_NodeInfo.Unmarshal(m, b)
 }
-func (m *Node) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_Node.Marshal(b, m, deterministic)
+func (m *NodeInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_NodeInfo.Marshal(b, m, deterministic)
 }
-func (m *Node) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Node.Merge(m, src)
+func (m *NodeInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NodeInfo.Merge(m, src)
 }
-func (m *Node) XXX_Size() int {
-	return xxx_messageInfo_Node.Size(m)
+func (m *NodeInfo) XXX_Size() int {
+	return xxx_messageInfo_NodeInfo.Size(m)
 }
-func (m *Node) XXX_DiscardUnknown() {
-	xxx_messageInfo_Node.DiscardUnknown(m)
+func (m *NodeInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_NodeInfo.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_Node proto.InternalMessageInfo
+var xxx_messageInfo_NodeInfo proto.InternalMessageInfo
 
-func (m *Node) GetId() string {
+func (m *NodeInfo) GetId() string {
 	if m != nil {
 		return m.Id
 	}
 	return ""
 }
 
-func (m *Node) GetPort() string {
+func (m *NodeInfo) GetSource() string {
 	if m != nil {
-		return m.Port
+		return m.Source
 	}
 	return ""
+}
+
+type NodesList struct {
+	Nodes                []*NodeInfo `protobuf:"bytes,1,rep,name=Nodes,json=nodes,proto3" json:"Nodes,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
+	XXX_unrecognized     []byte      `json:"-"`
+	XXX_sizecache        int32       `json:"-"`
+}
+
+func (m *NodesList) Reset()         { *m = NodesList{} }
+func (m *NodesList) String() string { return proto.CompactTextString(m) }
+func (*NodesList) ProtoMessage()    {}
+func (*NodesList) Descriptor() ([]byte, []int) {
+	return fileDescriptor_00212fb1f9d3bf1c, []int{1}
+}
+
+func (m *NodesList) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_NodesList.Unmarshal(m, b)
+}
+func (m *NodesList) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_NodesList.Marshal(b, m, deterministic)
+}
+func (m *NodesList) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NodesList.Merge(m, src)
+}
+func (m *NodesList) XXX_Size() int {
+	return xxx_messageInfo_NodesList.Size(m)
+}
+func (m *NodesList) XXX_DiscardUnknown() {
+	xxx_messageInfo_NodesList.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_NodesList proto.InternalMessageInfo
+
+func (m *NodesList) GetNodes() []*NodeInfo {
+	if m != nil {
+		return m.Nodes
+	}
+	return nil
 }
 
 //Timeout is the time interval for checking the connection with the Node
@@ -82,7 +121,7 @@ func (m *Timeout) Reset()         { *m = Timeout{} }
 func (m *Timeout) String() string { return proto.CompactTextString(m) }
 func (*Timeout) ProtoMessage()    {}
 func (*Timeout) Descriptor() ([]byte, []int) {
-	return fileDescriptor_00212fb1f9d3bf1c, []int{1}
+	return fileDescriptor_00212fb1f9d3bf1c, []int{2}
 }
 
 func (m *Timeout) XXX_Unmarshal(b []byte) error {
@@ -122,7 +161,7 @@ func (m *PingMessage) Reset()         { *m = PingMessage{} }
 func (m *PingMessage) String() string { return proto.CompactTextString(m) }
 func (*PingMessage) ProtoMessage()    {}
 func (*PingMessage) Descriptor() ([]byte, []int) {
-	return fileDescriptor_00212fb1f9d3bf1c, []int{2}
+	return fileDescriptor_00212fb1f9d3bf1c, []int{3}
 }
 
 func (m *PingMessage) XXX_Unmarshal(b []byte) error {
@@ -160,7 +199,7 @@ func (m *Empty) Reset()         { *m = Empty{} }
 func (m *Empty) String() string { return proto.CompactTextString(m) }
 func (*Empty) ProtoMessage()    {}
 func (*Empty) Descriptor() ([]byte, []int) {
-	return fileDescriptor_00212fb1f9d3bf1c, []int{3}
+	return fileDescriptor_00212fb1f9d3bf1c, []int{4}
 }
 
 func (m *Empty) XXX_Unmarshal(b []byte) error {
@@ -192,7 +231,7 @@ func (m *LookFor) Reset()         { *m = LookFor{} }
 func (m *LookFor) String() string { return proto.CompactTextString(m) }
 func (*LookFor) ProtoMessage()    {}
 func (*LookFor) Descriptor() ([]byte, []int) {
-	return fileDescriptor_00212fb1f9d3bf1c, []int{4}
+	return fileDescriptor_00212fb1f9d3bf1c, []int{5}
 }
 
 func (m *LookFor) XXX_Unmarshal(b []byte) error {
@@ -220,7 +259,7 @@ func (m *LookFor) GetName() string {
 	return ""
 }
 
-type Found struct {
+type Person struct {
 	Name                 string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Age                  int64    `protobuf:"varint,2,opt,name=age,proto3" json:"age,omitempty"`
 	Profession           string   `protobuf:"bytes,3,opt,name=profession,proto3" json:"profession,omitempty"`
@@ -229,46 +268,46 @@ type Found struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *Found) Reset()         { *m = Found{} }
-func (m *Found) String() string { return proto.CompactTextString(m) }
-func (*Found) ProtoMessage()    {}
-func (*Found) Descriptor() ([]byte, []int) {
-	return fileDescriptor_00212fb1f9d3bf1c, []int{5}
+func (m *Person) Reset()         { *m = Person{} }
+func (m *Person) String() string { return proto.CompactTextString(m) }
+func (*Person) ProtoMessage()    {}
+func (*Person) Descriptor() ([]byte, []int) {
+	return fileDescriptor_00212fb1f9d3bf1c, []int{6}
 }
 
-func (m *Found) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_Found.Unmarshal(m, b)
+func (m *Person) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Person.Unmarshal(m, b)
 }
-func (m *Found) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_Found.Marshal(b, m, deterministic)
+func (m *Person) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Person.Marshal(b, m, deterministic)
 }
-func (m *Found) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Found.Merge(m, src)
+func (m *Person) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Person.Merge(m, src)
 }
-func (m *Found) XXX_Size() int {
-	return xxx_messageInfo_Found.Size(m)
+func (m *Person) XXX_Size() int {
+	return xxx_messageInfo_Person.Size(m)
 }
-func (m *Found) XXX_DiscardUnknown() {
-	xxx_messageInfo_Found.DiscardUnknown(m)
+func (m *Person) XXX_DiscardUnknown() {
+	xxx_messageInfo_Person.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_Found proto.InternalMessageInfo
+var xxx_messageInfo_Person proto.InternalMessageInfo
 
-func (m *Found) GetName() string {
+func (m *Person) GetName() string {
 	if m != nil {
 		return m.Name
 	}
 	return ""
 }
 
-func (m *Found) GetAge() int64 {
+func (m *Person) GetAge() int64 {
 	if m != nil {
 		return m.Age
 	}
 	return 0
 }
 
-func (m *Found) GetProfession() string {
+func (m *Person) GetProfession() string {
 	if m != nil {
 		return m.Profession
 	}
@@ -276,36 +315,41 @@ func (m *Found) GetProfession() string {
 }
 
 func init() {
-	proto.RegisterType((*Node)(nil), "api.Node")
+	proto.RegisterType((*NodeInfo)(nil), "api.NodeInfo")
+	proto.RegisterType((*NodesList)(nil), "api.NodesList")
 	proto.RegisterType((*Timeout)(nil), "api.Timeout")
 	proto.RegisterType((*PingMessage)(nil), "api.PingMessage")
 	proto.RegisterType((*Empty)(nil), "api.Empty")
 	proto.RegisterType((*LookFor)(nil), "api.LookFor")
-	proto.RegisterType((*Found)(nil), "api.Found")
+	proto.RegisterType((*Person)(nil), "api.Person")
 }
 
 func init() { proto.RegisterFile("api.proto", fileDescriptor_00212fb1f9d3bf1c) }
 
 var fileDescriptor_00212fb1f9d3bf1c = []byte{
-	// 273 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x91, 0x5f, 0x4b, 0xc3, 0x30,
-	0x10, 0xc0, 0xbb, 0xb6, 0x5b, 0xdb, 0x9b, 0xc8, 0xb8, 0xa7, 0x32, 0x98, 0x48, 0x44, 0x19, 0x3e,
-	0x0c, 0xad, 0xf8, 0x0d, 0xb4, 0xfa, 0xe0, 0x44, 0xaa, 0x5f, 0x20, 0xd2, 0x58, 0x82, 0x6b, 0x2e,
-	0xb4, 0xd9, 0xc3, 0xbe, 0xbd, 0xf4, 0x1a, 0x64, 0xa0, 0x6f, 0xbf, 0xdc, 0xbf, 0xe4, 0x77, 0x81,
-	0x4c, 0x5a, 0xbd, 0xb1, 0x1d, 0x39, 0xc2, 0x48, 0x5a, 0x2d, 0xae, 0x21, 0x7e, 0xa5, 0x5a, 0xe1,
-	0x29, 0x84, 0xba, 0xce, 0x27, 0xe7, 0x93, 0x75, 0x56, 0x85, 0xba, 0x46, 0x84, 0xd8, 0x52, 0xe7,
-	0xf2, 0x90, 0x23, 0xcc, 0xe2, 0x02, 0x92, 0x0f, 0xdd, 0x2a, 0xda, 0x3b, 0xcc, 0x7f, 0x91, 0x7b,
-	0xa2, 0x2a, 0x71, 0xe3, 0x51, 0xac, 0x60, 0xfe, 0xa6, 0x4d, 0xb3, 0x55, 0x7d, 0x2f, 0x9b, 0x3f,
-	0x73, 0x45, 0x02, 0xd3, 0xc7, 0xd6, 0xba, 0x83, 0x58, 0x41, 0xf2, 0x42, 0xf4, 0x5d, 0x52, 0x37,
-	0xdc, 0x65, 0x64, 0xab, 0x7c, 0x15, 0xb3, 0xd8, 0xc2, 0xb4, 0xa4, 0xbd, 0xa9, 0xff, 0x4b, 0xe2,
-	0x02, 0x22, 0xd9, 0x28, 0x7e, 0x5b, 0x54, 0x0d, 0x88, 0x67, 0x00, 0xb6, 0xa3, 0x2f, 0xd5, 0xf7,
-	0x9a, 0x4c, 0x1e, 0x71, 0xed, 0x51, 0xa4, 0xb8, 0x85, 0xf4, 0xa9, 0x53, 0xca, 0x69, 0xd3, 0xe0,
-	0x25, 0xa4, 0xef, 0xf2, 0xf0, 0xac, 0x76, 0x3b, 0xc2, 0x6c, 0x33, 0xec, 0x63, 0xd8, 0xc0, 0xf2,
-	0x84, 0xd1, 0x5b, 0x89, 0xa0, 0xb8, 0x81, 0x78, 0x10, 0xc1, 0x35, 0xcc, 0x46, 0x21, 0x5c, 0x70,
-	0xc5, 0x91, 0xdd, 0x12, 0x38, 0x32, 0x0a, 0x05, 0xc5, 0x3d, 0xcc, 0xbd, 0xd2, 0x83, 0x74, 0x12,
-	0xaf, 0x20, 0x2d, 0xb5, 0xa9, 0x99, 0xc7, 0xe1, 0x3e, 0xeb, 0xdb, 0xd8, 0x4f, 0x04, 0x9f, 0x33,
-	0xfe, 0x8e, 0xbb, 0x9f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xd5, 0xd9, 0x71, 0x4d, 0x9b, 0x01, 0x00,
-	0x00,
+	// 345 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x52, 0x4d, 0x4f, 0xc2, 0x40,
+	0x10, 0x6d, 0x29, 0xb4, 0x74, 0x50, 0x42, 0x26, 0xd1, 0x34, 0x24, 0x18, 0xb2, 0x24, 0x8a, 0x17,
+	0x62, 0xca, 0xd9, 0x83, 0xdf, 0x31, 0x41, 0x24, 0xd5, 0x83, 0xd7, 0x4a, 0x17, 0xb2, 0x51, 0x76,
+	0x9a, 0xdd, 0xc5, 0xc4, 0xbf, 0xe1, 0x2f, 0x36, 0xdd, 0x22, 0x22, 0xe1, 0xe4, 0x6d, 0xde, 0xbc,
+	0x99, 0xce, 0x7b, 0xaf, 0x0b, 0x61, 0x9a, 0x8b, 0x41, 0xae, 0xc8, 0x10, 0x7a, 0x69, 0x2e, 0x58,
+	0x0c, 0xf5, 0x31, 0x65, 0xfc, 0x5e, 0xce, 0x08, 0x9b, 0x50, 0x11, 0x59, 0xe4, 0x76, 0xdd, 0x7e,
+	0x98, 0x54, 0x44, 0x86, 0x87, 0xe0, 0x6b, 0x5a, 0xaa, 0x29, 0x8f, 0x2a, 0xb6, 0xb7, 0x42, 0xec,
+	0x0c, 0xc2, 0x62, 0x47, 0x8f, 0x84, 0x36, 0xd8, 0x83, 0x9a, 0x05, 0x91, 0xdb, 0xf5, 0xfa, 0x8d,
+	0x78, 0x7f, 0x50, 0x1c, 0xf8, 0xf9, 0x64, 0x52, 0x93, 0x05, 0xc7, 0x7a, 0x10, 0x3c, 0x8b, 0x05,
+	0xa7, 0xa5, 0xc1, 0x68, 0x5d, 0xda, 0x4b, 0x5e, 0x12, 0x98, 0x12, 0xb2, 0x0e, 0x34, 0x26, 0x42,
+	0xce, 0x1f, 0xb8, 0xd6, 0xe9, 0x9c, 0x6f, 0xab, 0x61, 0x01, 0xd4, 0x6e, 0x16, 0xb9, 0xf9, 0x64,
+	0x1d, 0x08, 0x46, 0x44, 0x6f, 0xb7, 0xa4, 0x10, 0xa1, 0x2a, 0xd3, 0x05, 0x5f, 0x4d, 0xd9, 0x9a,
+	0x8d, 0xc1, 0x9f, 0x70, 0xa5, 0x49, 0xee, 0x62, 0xb1, 0x05, 0x5e, 0x3a, 0x2f, 0x0d, 0x79, 0x49,
+	0x51, 0xe2, 0x11, 0x40, 0xae, 0x68, 0xc6, 0xb5, 0x16, 0x24, 0x23, 0xcf, 0xce, 0x6e, 0x74, 0xe2,
+	0x2f, 0x17, 0x82, 0x2b, 0x92, 0x46, 0xd1, 0x3b, 0x9e, 0x40, 0xfd, 0x5a, 0x51, 0x5e, 0xd8, 0xc3,
+	0xbf, 0x4e, 0xdb, 0x60, 0x61, 0xa9, 0xd0, 0xc1, 0x53, 0x08, 0x8b, 0x74, 0x6c, 0x32, 0xb8, 0x41,
+	0xb5, 0x9b, 0xeb, 0x2d, 0x1b, 0x1f, 0x73, 0x70, 0x08, 0x07, 0x77, 0xdc, 0x3c, 0x4a, 0x5e, 0xaa,
+	0xbe, 0x54, 0x94, 0x66, 0xd3, 0x54, 0x1b, 0x6c, 0xd8, 0xd1, 0xb2, 0xdb, 0xde, 0x04, 0xcc, 0x89,
+	0xcf, 0xc1, 0x7f, 0xe2, 0xea, 0x83, 0xab, 0xff, 0xad, 0xbf, 0x40, 0xd5, 0x7a, 0x38, 0x86, 0x6a,
+	0x11, 0x39, 0xb6, 0x4a, 0xfa, 0x37, 0xfd, 0x2d, 0x3b, 0x7d, 0x08, 0x2e, 0xb2, 0x6c, 0x97, 0xed,
+	0x3d, 0x0b, 0x57, 0x7f, 0x94, 0x39, 0xaf, 0xbe, 0x7d, 0x5b, 0xc3, 0xef, 0x00, 0x00, 0x00, 0xff,
+	0xff, 0xd2, 0x54, 0x75, 0xaa, 0x68, 0x02, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -316,192 +360,291 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// GreetingClient is the client API for Greeting service.
+// ControlClient is the client API for Control service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type GreetingClient interface {
-	SayHello(ctx context.Context, in *Node, opts ...grpc.CallOption) (*Timeout, error)
+type ControlClient interface {
+	DropNode(ctx context.Context, in *NodeInfo, opts ...grpc.CallOption) (*Empty, error)
+	ListNodes(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*NodesList, error)
+	GetOnePersonBroadcast(ctx context.Context, in *Person, opts ...grpc.CallOption) (*Person, error)
 }
 
-type greetingClient struct {
+type controlClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewGreetingClient(cc *grpc.ClientConn) GreetingClient {
-	return &greetingClient{cc}
+func NewControlClient(cc *grpc.ClientConn) ControlClient {
+	return &controlClient{cc}
 }
 
-func (c *greetingClient) SayHello(ctx context.Context, in *Node, opts ...grpc.CallOption) (*Timeout, error) {
-	out := new(Timeout)
-	err := c.cc.Invoke(ctx, "/api.Greeting/SayHello", in, out, opts...)
+func (c *controlClient) DropNode(ctx context.Context, in *NodeInfo, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/api.Control/DropNode", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// GreetingServer is the server API for Greeting service.
-type GreetingServer interface {
-	SayHello(context.Context, *Node) (*Timeout, error)
+func (c *controlClient) ListNodes(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*NodesList, error) {
+	out := new(NodesList)
+	err := c.cc.Invoke(ctx, "/api.Control/ListNodes", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
-func RegisterGreetingServer(s *grpc.Server, srv GreetingServer) {
-	s.RegisterService(&_Greeting_serviceDesc, srv)
+func (c *controlClient) GetOnePersonBroadcast(ctx context.Context, in *Person, opts ...grpc.CallOption) (*Person, error) {
+	out := new(Person)
+	err := c.cc.Invoke(ctx, "/api.Control/GetOnePersonBroadcast", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
-func _Greeting_SayHello_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Node)
+// ControlServer is the server API for Control service.
+type ControlServer interface {
+	DropNode(context.Context, *NodeInfo) (*Empty, error)
+	ListNodes(context.Context, *Empty) (*NodesList, error)
+	GetOnePersonBroadcast(context.Context, *Person) (*Person, error)
+}
+
+func RegisterControlServer(s *grpc.Server, srv ControlServer) {
+	s.RegisterService(&_Control_serviceDesc, srv)
+}
+
+func _Control_DropNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(NodeInfo)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GreetingServer).SayHello(ctx, in)
+		return srv.(ControlServer).DropNode(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Greeting/SayHello",
+		FullMethod: "/api.Control/DropNode",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GreetingServer).SayHello(ctx, req.(*Node))
+		return srv.(ControlServer).DropNode(ctx, req.(*NodeInfo))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _Greeting_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "api.Greeting",
-	HandlerType: (*GreetingServer)(nil),
+func _Control_ListNodes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ControlServer).ListNodes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Control/ListNodes",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ControlServer).ListNodes(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Control_GetOnePersonBroadcast_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Person)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ControlServer).GetOnePersonBroadcast(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Control/GetOnePersonBroadcast",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ControlServer).GetOnePersonBroadcast(ctx, req.(*Person))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _Control_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "api.Control",
+	HandlerType: (*ControlServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "SayHello",
-			Handler:    _Greeting_SayHello_Handler,
+			MethodName: "DropNode",
+			Handler:    _Control_DropNode_Handler,
+		},
+		{
+			MethodName: "ListNodes",
+			Handler:    _Control_ListNodes_Handler,
+		},
+		{
+			MethodName: "GetOnePersonBroadcast",
+			Handler:    _Control_GetOnePersonBroadcast_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "api.proto",
 }
 
-// PingClient is the client API for Ping service.
+// ServerClient is the client API for Server service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type PingClient interface {
-	PingMe(ctx context.Context, in *PingMessage, opts ...grpc.CallOption) (*Empty, error)
+type ServerClient interface {
+	GetOnePersonBroadcast(ctx context.Context, in *Person, opts ...grpc.CallOption) (*Person, error)
 }
 
-type pingClient struct {
+type serverClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewPingClient(cc *grpc.ClientConn) PingClient {
-	return &pingClient{cc}
+func NewServerClient(cc *grpc.ClientConn) ServerClient {
+	return &serverClient{cc}
 }
 
-func (c *pingClient) PingMe(ctx context.Context, in *PingMessage, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/api.Ping/PingMe", in, out, opts...)
+func (c *serverClient) GetOnePersonBroadcast(ctx context.Context, in *Person, opts ...grpc.CallOption) (*Person, error) {
+	out := new(Person)
+	err := c.cc.Invoke(ctx, "/api.Server/GetOnePersonBroadcast", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// PingServer is the server API for Ping service.
-type PingServer interface {
-	PingMe(context.Context, *PingMessage) (*Empty, error)
+// ServerServer is the server API for Server service.
+type ServerServer interface {
+	GetOnePersonBroadcast(context.Context, *Person) (*Person, error)
 }
 
-func RegisterPingServer(s *grpc.Server, srv PingServer) {
-	s.RegisterService(&_Ping_serviceDesc, srv)
+func RegisterServerServer(s *grpc.Server, srv ServerServer) {
+	s.RegisterService(&_Server_serviceDesc, srv)
 }
 
-func _Ping_PingMe_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Server_GetOnePersonBroadcast_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Person)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServerServer).GetOnePersonBroadcast(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Server/GetOnePersonBroadcast",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServerServer).GetOnePersonBroadcast(ctx, req.(*Person))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _Server_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "api.Server",
+	HandlerType: (*ServerServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetOnePersonBroadcast",
+			Handler:    _Server_GetOnePersonBroadcast_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "api.proto",
+}
+
+// NodeClient is the client API for Node service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type NodeClient interface {
+	Ping(ctx context.Context, in *PingMessage, opts ...grpc.CallOption) (*Empty, error)
+	AddNode(ctx context.Context, in *NodeInfo, opts ...grpc.CallOption) (*Timeout, error)
+}
+
+type nodeClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewNodeClient(cc *grpc.ClientConn) NodeClient {
+	return &nodeClient{cc}
+}
+
+func (c *nodeClient) Ping(ctx context.Context, in *PingMessage, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/api.Node/Ping", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nodeClient) AddNode(ctx context.Context, in *NodeInfo, opts ...grpc.CallOption) (*Timeout, error) {
+	out := new(Timeout)
+	err := c.cc.Invoke(ctx, "/api.Node/AddNode", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// NodeServer is the server API for Node service.
+type NodeServer interface {
+	Ping(context.Context, *PingMessage) (*Empty, error)
+	AddNode(context.Context, *NodeInfo) (*Timeout, error)
+}
+
+func RegisterNodeServer(s *grpc.Server, srv NodeServer) {
+	s.RegisterService(&_Node_serviceDesc, srv)
+}
+
+func _Node_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PingMessage)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PingServer).PingMe(ctx, in)
+		return srv.(NodeServer).Ping(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Ping/PingMe",
+		FullMethod: "/api.Node/Ping",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PingServer).PingMe(ctx, req.(*PingMessage))
+		return srv.(NodeServer).Ping(ctx, req.(*PingMessage))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _Ping_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "api.Ping",
-	HandlerType: (*PingServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "PingMe",
-			Handler:    _Ping_PingMe_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "api.proto",
-}
-
-// LookForDataClient is the client API for LookForData service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type LookForDataClient interface {
-	FindData(ctx context.Context, in *LookFor, opts ...grpc.CallOption) (*Found, error)
-}
-
-type lookForDataClient struct {
-	cc *grpc.ClientConn
-}
-
-func NewLookForDataClient(cc *grpc.ClientConn) LookForDataClient {
-	return &lookForDataClient{cc}
-}
-
-func (c *lookForDataClient) FindData(ctx context.Context, in *LookFor, opts ...grpc.CallOption) (*Found, error) {
-	out := new(Found)
-	err := c.cc.Invoke(ctx, "/api.LookForData/FindData", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// LookForDataServer is the server API for LookForData service.
-type LookForDataServer interface {
-	FindData(context.Context, *LookFor) (*Found, error)
-}
-
-func RegisterLookForDataServer(s *grpc.Server, srv LookForDataServer) {
-	s.RegisterService(&_LookForData_serviceDesc, srv)
-}
-
-func _LookForData_FindData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LookFor)
+func _Node_AddNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(NodeInfo)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(LookForDataServer).FindData(ctx, in)
+		return srv.(NodeServer).AddNode(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.LookForData/FindData",
+		FullMethod: "/api.Node/AddNode",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LookForDataServer).FindData(ctx, req.(*LookFor))
+		return srv.(NodeServer).AddNode(ctx, req.(*NodeInfo))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _LookForData_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "api.LookForData",
-	HandlerType: (*LookForDataServer)(nil),
+var _Node_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "api.Node",
+	HandlerType: (*NodeServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "FindData",
-			Handler:    _LookForData_FindData_Handler,
+			MethodName: "Ping",
+			Handler:    _Node_Ping_Handler,
+		},
+		{
+			MethodName: "AddNode",
+			Handler:    _Node_AddNode_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

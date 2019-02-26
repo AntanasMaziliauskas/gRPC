@@ -1,7 +1,10 @@
 package broker
 
 import (
+	"context"
 	"fmt"
+	"log"
+	"sync"
 	"time"
 
 	"github.com/AntanasMaziliauskas/grpc/api"
@@ -10,23 +13,22 @@ import (
 
 type BrokerService interface {
 	Init() error
-	// Startas suks cikla per visus nodes ir ieskos pas ka last_seen yra mazas
-	// ir atliks DropNode jei yra timeout
-	Start() error
-	//Sustabdo start cikla
+
+	Start(int)
+
 	Stop() error
-	// api.Node | Receivinu info is Node ir uzmezgu connection.
-	AddNode(*api.Node) error
-	//Istrinu Node is saraso
-	//DropNode(node string) error
-	//Updatinu Last Seen, kuomet gaunu ping
-	ReceivedPing() // paupdeitini last seen
-	//Returninu Node sarasa. Kam sito reikia? HHTP, kad atvaizduoti gal
-	/*	ListNodes() []broker.Node
 
-		GetOnePersonBroadcast(ctx context.Context, person string) (api.Person, error)
-		GetOnePersonNode(ctx context.Context, node, person string) (api.Person, error)
+	AddNode(context.Context, *api.NodeInfo) (*api.Timeout, error)
 
+	DropNode(context.Context, *api.NodeInfo) (*api.Empty, error)
+
+	Ping(context.Context, *api.PingMessage) (*api.Empty, error)
+
+	ListNodes(context.Context, *api.Empty) (*api.NodeInfo, error)
+
+	GetOnePersonBroadcast(context.Context, *api.Person) (*api.Person, error)
+	//GetOnePersonNode(ctx context.Context, node, person string) (*api.Person, error)
+	/*
 		GetMultiPersonBroadcast(ctx context.Context, person string) ([]api.Person, error)
 		GetMultiPersonNode(ctx context.Context, node, person string) ([]api.Person, error)
 
@@ -41,7 +43,11 @@ type BrokerService interface {
 }
 
 type GRPCBroker struct {
-	Nodes map[string]Node
+	Nodes      map[string]*Node
+	ctx        context.Context
+	cancel     context.CancelFunc
+	wg         *sync.WaitGroup
+	GrpcServer *grpc.Server
 }
 
 type Node struct {
@@ -50,65 +56,118 @@ type Node struct {
 	Connection *grpc.ClientConn
 }
 
-func (g *GRPCBroker) Init() error { return nil }
+//Init function makes Nodes map, assigns WaitGroup and Context values
+func (g *GRPCBroker) Init() error {
+	g.Nodes = make(map[string]*Node)
+	g.wg = &sync.WaitGroup{}
+	g.ctx, g.cancel = context.WithCancel(context.Background())
 
-func (g *GRPCBroker) Start() error {
-	fmt.Println("Start")
+	//g.GrpcServer = grpc.NewServer()
+
+	//api.RegisterNodeServer(g.GrpcServer, g)
+	return nil
+}
+
+//Start function runs go routine and checks for connections that are timed out
+//deleted nodes that are timed out from the Nodes list
+func (g *GRPCBroker) Start(timeout int) {
+	fmt.Println("Starting TimeOut service")
+
+	go func() {
+		g.wg.Add(1)
+		ticker := time.NewTicker(time.Duration(timeout) * time.Second)
+		for {
+			select {
+			case <-ticker.C:
+				for k, v := range g.Nodes {
+					diff := time.Now().Sub(v.LastSeen)
+					sec := int(diff.Seconds())
+					if sec > timeout {
+						delete(g.Nodes, k)
+						fmt.Println(k, "Node has timed out and was deleted from the list.")
+					}
+				}
+			case <-g.ctx.Done():
+				log.Println("TimeOut service has stopped.")
+				g.wg.Done()
+			}
+		}
+	}()
+}
+
+//Stop function stops Go Routine
+func (g *GRPCBroker) Stop() error {
+	g.cancel()
+	g.wg.Wait()
 
 	return nil
 }
 
-func (g *GRPCBroker) Stop() error { return nil }
+//AddNode function adds connected Node to a list
+func (g *GRPCBroker) AddNode(ctx context.Context, in *api.NodeInfo) (*api.Timeout, error) {
+	log.Printf("Received message: %s. Port: %s", in.Id, in.Source)
+	conn, err := grpc.Dial(in.Source, grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("did not connect: %s", err)
+	}
 
-func (g *GRPCBroker) AddNode(in *api.Node) error {
+	g.Nodes[in.Id] = &Node{
+		Port:       in.Source,
+		LastSeen:   time.Now(),
+		Connection: conn,
+	}
 
-	fmt.Println(in)
-	//Connection padarom su Node iskarto
-	//conn, err := grpc.Dial(":7778", grpc.WithInsecure()) // Portas ateina is NODE
-	//	if err != nil {
-	//	log.Fatalf("did not connect: %s", err)
-	//	}
-	//Nereikia uzdaryti connection
-	//defer conn.Close()
-
-	//a := api.NewLookForDataClient(conn)
-
-	//TODO: Neaiski vieta. Ar tikrai galim connections deti i map? Ar dedam dar kazka?
-	//Sudedam connectionus i map'a
-	//g.Nodes[in.Id] = Node{
-	//	Name:       in.Id,
-	//		Port:       in.Port,
-	//		LastSeen:   time.Now(),
-	//		Connection: conn,
-	//NewLookForDataClient: a (?)
-	//	}
-	return nil
+	return &api.Timeout{Timeout: 15}, err
 }
 
-//func (g *GRPCBroker) DropNode(node string) error { return nil }
+//DropNode deleted Node from the list
+func (g *GRPCBroker) DropNode(ctx context.Context, in *api.NodeInfo) (*api.Empty, error) {
+	delete(g.Nodes, in.Id)
 
-func (g *GRPCBroker) ReceivedPing() {
-	fmt.Println("Received Ping")
-	//return nil
+	return &api.Empty{}, nil
+}
+
+//ReceivedPing function updates LastSeen for the Node that pinged the server
+func (g *GRPCBroker) Ping(ctx context.Context, in *api.PingMessage) (*api.Empty, error) {
+	fmt.Println("I Got Pinged From ", in.Id)
+	g.Nodes[in.Id].LastSeen = time.Now()
+
+	return &api.Empty{}, nil
+}
+
+//ListNodes function return a list of Nodes that are connected to the server
+func (g *GRPCBroker) ListNodes(ctx context.Context, in *api.Empty) (*api.NodesList, error) {
+	var nodesList *api.NodesList
+	for k, v := range g.Nodes {
+		nodesList = append(nodesList, &api.NodesList{
+			Id:     k,
+			Source: v.Port,
+		})
+	}
+	return &g.Nodes, nil
+}
+
+//GetOnePersonBroadcast function go through the list of connected Nodes
+//requests to look for data with the name given, retrieved the data and return it.
+func (g *GRPCBroker) GetOnePersonBroadcast(ctx context.Context, in *api.Person) (*api.Person, error) {
+	//var response *api.Person
+	var err error
+
+	for _, v := range g.Nodes {
+		a := api.NewServerClient(v.Connection)
+		_, err = a.GetOnePersonBroadcast(context.Background(), &api.Person{Name: in.Name})
+		if err != nil {
+			//log.Fatalf("Error when trying to get response from server: %s", err)
+		}
+	}
+
+	return &api.Person{Name: "Petras"}, err
 }
 
 /*
+func (g *GRPCBroker) GetOnePersonNode(node string, name string) (*api.Person, error) {
 
-func (g *GRPCBroker) ListNodes() error { return nil }
+	a := api.NewLookForDataClient(g.Nodes[node].Connection)
 
-func (g *GRPCBroker) GetOnePersonBroadcast(...) {
-	conn = g.nodes[node_id].Connection.
-
-	a := api.NewLookForDataClient(conn)
-
-	return a.GetNode() // kvieciam pas node kazka kas moka grazint person
-}
-
-
-func (g *GRPCBroker) GetOnePersonNode(...) {
-	conn = g.nodes[node_id].Connection.
-
-	a := api.NewLookForDataClient(conn)
-
-	return a.GetNode() // kvieciam pas node kazka kas moka grazint person
+	return a.FindData(context.Background(), &api.LookFor{Name: name})
 }*/

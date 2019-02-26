@@ -4,12 +4,12 @@ import "github.com/BurntSushi/toml"
 
 type Config struct {
 	Node struct {
-		ID   string
-		Port string
-		Path string
+		ID     string
+		Listen string
+		Path   string
 	}
 	Server struct {
-		Port string
+		Source string
 	}
 }
 
@@ -24,13 +24,13 @@ func (c *Config) ApplyDefaults() {
 		c.Node.ID = "Node-0001"
 	}
 
-	if c.Node.Port == "" {
-		c.Node.Port = "8888"
+	if c.Node.Listen == "" {
+		c.Node.Listen = "0.0.0.0:8887"
 	}
 	if c.Node.Path == "" {
 		c.Node.Path = "data.json"
 	}
-	if c.Server.Port == "" {
-		c.Server.Port = "7778"
+	if c.Server.Source == "" {
+		c.Server.Source = "0.0.0.0:7778"
 	}
 }

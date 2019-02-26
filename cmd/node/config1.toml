@@ -1,9 +1,10 @@
 [Node]
 id = "Node-002"
-#listen = "0.0.0.0:8000"
-port = "8887"
+listen = "0.0.0.0:8887"
+#port = "8887"
 path = "data.json"
 
 [Server]
 #IP = "0.0.0.0"
-port = "7778"
+source = "0.0.0.0:7778"
+#port = "7778"

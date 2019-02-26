@@ -26,9 +26,9 @@ func main() {
 	config.ApplyDefaults()
 
 	app := node.Application{
-		Port:       config.Node.Port,
+		Port:       config.Node.Listen,
 		ID:         config.Node.ID,
-		ServerPort: config.Server.Port,
+		ServerPort: config.Server.Source,
 		Person: &person.DataFromFile{
 			Path: config.Node.Path},
 	}

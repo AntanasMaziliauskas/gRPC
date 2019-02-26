@@ -2,7 +2,6 @@ package node
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net"
 	"time"
@@ -24,13 +23,14 @@ type Application struct {
 	Person     person.PersonService
 }
 
+//Init function runs Person.Init, connects to server and ?????
 func (a *Application) Init() {
 
-	a.Person.Init()
+	a.Person.Init() //Error ReadFile error
 
-	a.ConnectToServer()
+	a.ConnectToServer() //Error log.Fatalf("did not connect: %s", err)
 
-	a.SettingServer()
+	a.SettinggRPCServer()
 
 }
 func (a *Application) Start() {
@@ -39,7 +39,7 @@ func (a *Application) Start() {
 
 	a.PingServer()
 
-	a.StartServer()
+	a.StartgRPCServer()
 
 }
 
@@ -48,21 +48,19 @@ func (a *Application) Stop() {
 	a.conn.Close()
 }
 
-//Pasiruosimas connectionui su serveriu |Init Susijungimas su serveriu
-func (a *Application) ConnectToServer() {
+//ConnectToServer function connects to server
+func (a *Application) ConnectToServer() error {
 	var err error
-	//Connecting to the server
-	a.conn, err = grpc.Dial(fmt.Sprintf(":%s", a.ServerPort), grpc.WithInsecure())
-	if err != nil {
-		log.Fatalf("did not connect: %s", err)
-	}
+
+	a.conn, err = grpc.Dial(a.ServerPort, grpc.WithInsecure())
+
+	return err
 }
 
-//Connectionas su serveriu | Start Pasisveikinimo issiuntimas serveriui
+//Connectionas su serveriu | Start Pasisveikinimo issiuntimas serveriui // pervadinti i sayhello
 func (a *Application) GreetingWithServer() {
-	a.Person.Init()
-	c := api.NewGreetingClient(a.conn)
-	response, err := c.SayHello(context.Background(), &api.Node{Id: a.ID, Port: a.ServerPort})
+	c := api.NewNodeClient(a.conn)
+	response, err := c.AddNode(context.Background(), &api.NodeInfo{Id: a.ID, Source: a.Port})
 	if err != nil {
 		log.Fatalf("Error when calling SayHello: %s", err)
 	}
@@ -70,11 +68,11 @@ func (a *Application) GreetingWithServer() {
 	a.Timeout = response.Timeout
 }
 
-//Pasiruosimas jungti serveri |INIT
-func (a *Application) SettingServer() {
+//?????
+func (a *Application) SettinggRPCServer() error {
 	var err error
-	//	var s Application
-	a.lis, err = net.Listen("tcp", fmt.Sprintf(":%s", a.Port))
+
+	a.lis, err = net.Listen("tcp", a.Port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
@@ -82,11 +80,13 @@ func (a *Application) SettingServer() {
 	// create a gRPC server object
 	a.grpcServer = grpc.NewServer()
 	// attach the Greeting service to the server
-	api.RegisterLookForDataServer(a.grpcServer, a)
+	//api.RegisterGetOnePersonBroadcastServer(a.grpcServer, a)
+
+	return err
 }
 
 //Listeneris serverio |START
-func (a *Application) StartServer() {
+func (a *Application) StartgRPCServer() {
 	if err := a.grpcServer.Serve(a.lis); err != nil {
 		log.Fatalf("failed to serve: %s", err)
 	}
@@ -94,14 +94,14 @@ func (a *Application) StartServer() {
 
 //Pinginimo siuntimas serveriui | Start GO rutina
 func (a *Application) PingServer() {
-	p := api.NewPingClient(a.conn)
+	p := api.NewNodeClient(a.conn)
 	go func() {
 		ticker := time.NewTicker(time.Duration(a.Timeout) / 2 * time.Second)
 		for {
 			select {
 			case <-ticker.C:
 				log.Printf("Pinging")
-				_, err := p.PingMe(context.Background(), &api.PingMessage{Id: a.ID})
+				_, err := p.Ping(context.Background(), &api.PingMessage{Id: a.ID})
 				if err != nil {
 					log.Fatalf("Error when calling PingMe: %s", err)
 				}
@@ -113,11 +113,10 @@ func (a *Application) PingServer() {
 }
 
 //Ateinancios uzklausos priimimas ir vykdymas
-func (a *Application) FindData(ctx context.Context, in *api.LookFor) (*api.Found, error) {
+func (a *Application) FindData(ctx context.Context, in *api.LookFor) (*api.Person, error) {
 	name := in.Name
-	//TODO: Kodel negaliu naudoti butent cia?
-	_ = a.Person.Init()
-	//_, _ = a.Person.GetOne(name)
-	//return &api.Found{Name: found.Name, Age: found.Age, Profession: found.Profession}, nil
-	return &api.Found{Name: name}, nil
+
+	person, _ := a.Person.GetOne(name)
+
+	return &api.Person{Name: person.Name, Age: person.Age, Profession: person.Profession}, nil
 }

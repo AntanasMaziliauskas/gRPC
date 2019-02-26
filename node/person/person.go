@@ -2,17 +2,15 @@ package person
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 )
 
 type PersonService interface {
 	Init() error
-
 	GetOne(name string) (Person, error)
 	//	GetMulti(names []string) ([]api.Person, error)
-
 }
+
 type DataFromFile struct {
 	Path string
 	Data []Person
@@ -24,13 +22,16 @@ type Person struct {
 	Profession string
 }
 
+//Init function reads the file
 func (d *DataFromFile) Init() error {
-	//d.Data, _ = d.readFile()
-	fmt.Println("Init veikia")
-	return nil
+	var err error
+
+	d.Data, err = d.readFile()
+
+	return err
 }
 
-//Dokumento nuskaitymas i struktura
+//readFile function reads the file and adds the content into structure
 func (d *DataFromFile) readFile() ([]Person, error) {
 	var (
 		data     []Person
@@ -48,6 +49,7 @@ func (d *DataFromFile) readFile() ([]Person, error) {
 	return data, nil
 }
 
+//GetOne function looks through the structure of data and return
 func (d *DataFromFile) GetOne(name string) (Person, error) {
 	found := sliceContainsString(name, d.Data)
 	return found, nil

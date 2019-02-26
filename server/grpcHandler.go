@@ -1,7 +1,6 @@
 package server
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net"
@@ -17,26 +16,22 @@ type Node struct {
 	Connection *grpc.ClientConn
 }
 
-//Pasiruosimas jungti serveri |INIT
-func (a *Application) SetServer() {
+//SetServer function creates listener, server object
+func (a *Application) SetServer() error {
 	var err error
-	var s Application // kažkas čia negerai
-	//a.timeout = 30
-	//Creating a listener
-	a.lis, err = net.Listen("tcp", fmt.Sprintf(":%d", 7778))
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
 
-	// create a gRPC server object
+	a.lis, err = net.Listen("tcp", fmt.Sprintf(":%d", 7778))
+
 	a.grpcServer = grpc.NewServer()
-	// attach the Greeting service to the server
-	api.RegisterGreetingServer(a.grpcServer, &s)
-	// attach the Ping service to the server
-	api.RegisterPingServer(a.grpcServer, &s)
+
+	api.RegisterNodeServer(a.grpcServer, a.Broker)
+	api.RegisterControlServer(a.grpcServer, a.Broker)
+	//	api.RegisterPingServer(a.grpcServer, a)
+
+	return err
 }
 
-//Listeneris serverio |START
+//StartServer function starts the gRPC server
 func (a *Application) StartServer() {
 	fmt.Println("Server Starting")
 	go func() {
@@ -45,45 +40,4 @@ func (a *Application) StartServer() {
 		}
 	}()
 
-}
-
-//Pasisveikinimo priimimas is Node kliento
-func (a *Application) SayHello(ctx context.Context, in *api.Node) (*api.Timeout, error) {
-
-	log.Printf("Received message: %s. Port: %s", in.Id, in.Port)
-
-	a.addNode(in)
-
-	return &api.Timeout{Timeout: Timeout}, nil
-}
-
-//Pingo priimimas is Node kliento
-func (a *Application) PingMe(ctx context.Context, in *api.PingMessage) (*api.Empty, error) {
-	fmt.Println("I Got Pinged From ", in.Id)
-	a.receivedPing(in)
-
-	return &api.Empty{}, nil
-}
-
-//TURI KELIAUTI I BROKERI
-func (a *Application) addNode(in *api.Node) {
-
-	conn, err := grpc.Dial(fmt.Sprintf(":%s", in.Port), grpc.WithInsecure()) // Portas ateina is NODE
-	if err != nil {
-		log.Fatalf("did not connect: %s", err)
-	}
-	//fmt.Println("test")
-
-	Nodes[in.Id] = &Node{
-		Port:       in.Port,
-		LastSeen:   time.Now(),
-		Connection: conn,
-	}
-	fmt.Println(Nodes[in.Id])
-}
-
-func (a *Application) receivedPing(in *api.PingMessage) {
-	Nodes[in.Id].LastSeen = time.Now()
-
-	//	fmt.Println(Nodes[in.Id])
 }

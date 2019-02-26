@@ -15,22 +15,20 @@ type Application struct {
 	lis        net.Listener
 	//TODO
 	//Ar hardcodinam timeout? Ar kaip flaga?
-	//timeout int64
 }
 
-//TODO Kazkaip protingiau turbut galima apsirasyti
-var Nodes map[string]*Node
-
+//Init function get the server and the broker ready
 func (a *Application) Init() {
-	Nodes = make(map[string]*Node)
-	a.SetServer()
+	a.SetServer() // Error 	log.Fatalf("failed to listen: %v", err)
 	a.Broker.Init()
 }
 
+//
 func (a *Application) Start() {
 	a.StartServer()
-	//a.Broker.Start()
-	a.StartHTTPServer()
+	a.Broker.Start(Timeout)
+
+	_ = a.StartHTTPServer() // Error log.Fatal("ListenAndServe: ", err)
 
 }
 
