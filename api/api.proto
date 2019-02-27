@@ -20,56 +20,43 @@ message PingMessage {
 message Empty {
 }
 
-message LookFor {
-    string name = 1;
-}
 message Person {
     string name =1;
     int64 age =2;
     string profession = 3;
+    string node =4;
 }
+
+message MultiPerson {
+repeated Person Persons =1;
+}
+
 
 service Control {
   rpc DropNode(NodeInfo) returns (Empty) {}
   rpc ListNodes(Empty) returns (NodesList) {}
   rpc GetOnePersonBroadcast(Person) returns (Person) {}
-  /*rpc GetOnePersonNode() returns () {}
-  rpc GetMultiPersonBroadcast() returns () {}
-  rpc GetMultiPersonNode() returns () {}
-  rpc DropOnePersonBroadcast() returns () {}
-  rpc DropOnePersonNode() returns () {}
-  rpc DropMultiPersonBroadcast() returns () {}
-  rpc DropMultiPersonNode() returns () {}
-  rpc InsertOnePersonNode() returns () {}
-  rpc InsertMultiPersonNode() returns () {}*/
+  rpc GetOnePersonNode(Person) returns (Person) {}
+  rpc GetMultiPersonBroadcast(MultiPerson) returns (MultiPerson) {}
+  rpc GetMultiPersonNode(MultiPerson) returns (MultiPerson) {}
+  rpc DropOnePersonBroadcast(Person) returns (Empty) {}
+  rpc DropOnePersonNode(Person) returns (Empty) {}
+  rpc DropMultiPersonBroadcast(MultiPerson) returns (Empty) {}
+  rpc DropMultiPersonNode(MultiPerson) returns (Empty) {}
+  rpc InsertOnePersonNode(Person) returns (Empty) {}
+  rpc InsertMultiPersonNode(MultiPerson) returns (Empty) {}
 }
 
 service Server {
-  rpc GetOnePersonBroadcast(Person) returns (Person) {}
-  /*rpc GetOnePersonNode() returns () {}
-  rpc GetMultiPersonBroadcast() returns () {}
-  rpc GetMultiPersonNode() returns () {}
-  rpc DropOnePersonBroadcast() returns () {}
-  rpc DropOnePersonNode() returns () {}
-  rpc DropMultiPersonBroadcast() returns () {}
-  rpc DropMultiPersonNode() returns () {}
-  rpc InsertOnePersonNode() returns () {}
-  rpc InsertMultiPersonNode() returns () {}*/
+  rpc GetOnePerson(Person) returns (Person) {}
+  rpc GetMultiPerson(MultiPerson) returns (MultiPerson) {}
+  rpc DropOnePerson(Person) returns (Empty) {}
+  rpc DropMultiPerson(MultiPerson) returns (Empty) {}
+  rpc InsertOnePerson(Person) returns (Empty) {}
+  rpc InsertMultiPerson(MultiPerson) returns (Empty) {}
 }
 
 service Node {
   rpc Ping(PingMessage) returns (Empty) {}
   rpc AddNode(NodeInfo) returns (Timeout) {}
 }
-
-/*
-service Greeting {
-  rpc SayHello(Node) returns (Timeout) {}
-}
-
-service Ping {
-    rpc PingMe(PingMessage) returns (Empty) {}
-}
-service LookForData {
-    rpc FindData(LookFor) returns (Person) {}
-}*/

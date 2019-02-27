@@ -220,49 +220,11 @@ func (m *Empty) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Empty proto.InternalMessageInfo
 
-type LookFor struct {
-	Name                 string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *LookFor) Reset()         { *m = LookFor{} }
-func (m *LookFor) String() string { return proto.CompactTextString(m) }
-func (*LookFor) ProtoMessage()    {}
-func (*LookFor) Descriptor() ([]byte, []int) {
-	return fileDescriptor_00212fb1f9d3bf1c, []int{5}
-}
-
-func (m *LookFor) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_LookFor.Unmarshal(m, b)
-}
-func (m *LookFor) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_LookFor.Marshal(b, m, deterministic)
-}
-func (m *LookFor) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_LookFor.Merge(m, src)
-}
-func (m *LookFor) XXX_Size() int {
-	return xxx_messageInfo_LookFor.Size(m)
-}
-func (m *LookFor) XXX_DiscardUnknown() {
-	xxx_messageInfo_LookFor.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_LookFor proto.InternalMessageInfo
-
-func (m *LookFor) GetName() string {
-	if m != nil {
-		return m.Name
-	}
-	return ""
-}
-
 type Person struct {
 	Name                 string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Age                  int64    `protobuf:"varint,2,opt,name=age,proto3" json:"age,omitempty"`
 	Profession           string   `protobuf:"bytes,3,opt,name=profession,proto3" json:"profession,omitempty"`
+	Node                 string   `protobuf:"bytes,4,opt,name=node,proto3" json:"node,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -272,7 +234,7 @@ func (m *Person) Reset()         { *m = Person{} }
 func (m *Person) String() string { return proto.CompactTextString(m) }
 func (*Person) ProtoMessage()    {}
 func (*Person) Descriptor() ([]byte, []int) {
-	return fileDescriptor_00212fb1f9d3bf1c, []int{6}
+	return fileDescriptor_00212fb1f9d3bf1c, []int{5}
 }
 
 func (m *Person) XXX_Unmarshal(b []byte) error {
@@ -314,42 +276,98 @@ func (m *Person) GetProfession() string {
 	return ""
 }
 
+func (m *Person) GetNode() string {
+	if m != nil {
+		return m.Node
+	}
+	return ""
+}
+
+type MultiPerson struct {
+	Persons              []*Person `protobuf:"bytes,1,rep,name=Persons,json=persons,proto3" json:"Persons,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
+	XXX_unrecognized     []byte    `json:"-"`
+	XXX_sizecache        int32     `json:"-"`
+}
+
+func (m *MultiPerson) Reset()         { *m = MultiPerson{} }
+func (m *MultiPerson) String() string { return proto.CompactTextString(m) }
+func (*MultiPerson) ProtoMessage()    {}
+func (*MultiPerson) Descriptor() ([]byte, []int) {
+	return fileDescriptor_00212fb1f9d3bf1c, []int{6}
+}
+
+func (m *MultiPerson) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_MultiPerson.Unmarshal(m, b)
+}
+func (m *MultiPerson) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_MultiPerson.Marshal(b, m, deterministic)
+}
+func (m *MultiPerson) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MultiPerson.Merge(m, src)
+}
+func (m *MultiPerson) XXX_Size() int {
+	return xxx_messageInfo_MultiPerson.Size(m)
+}
+func (m *MultiPerson) XXX_DiscardUnknown() {
+	xxx_messageInfo_MultiPerson.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MultiPerson proto.InternalMessageInfo
+
+func (m *MultiPerson) GetPersons() []*Person {
+	if m != nil {
+		return m.Persons
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*NodeInfo)(nil), "api.NodeInfo")
 	proto.RegisterType((*NodesList)(nil), "api.NodesList")
 	proto.RegisterType((*Timeout)(nil), "api.Timeout")
 	proto.RegisterType((*PingMessage)(nil), "api.PingMessage")
 	proto.RegisterType((*Empty)(nil), "api.Empty")
-	proto.RegisterType((*LookFor)(nil), "api.LookFor")
 	proto.RegisterType((*Person)(nil), "api.Person")
+	proto.RegisterType((*MultiPerson)(nil), "api.MultiPerson")
 }
 
 func init() { proto.RegisterFile("api.proto", fileDescriptor_00212fb1f9d3bf1c) }
 
 var fileDescriptor_00212fb1f9d3bf1c = []byte{
-	// 345 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x52, 0x4d, 0x4f, 0xc2, 0x40,
-	0x10, 0x6d, 0x29, 0xb4, 0x74, 0x50, 0x42, 0x26, 0xd1, 0x34, 0x24, 0x18, 0xb2, 0x24, 0x8a, 0x17,
-	0x62, 0xca, 0xd9, 0x83, 0xdf, 0x31, 0x41, 0x24, 0xd5, 0x83, 0xd7, 0x4a, 0x17, 0xb2, 0x51, 0x76,
-	0x9a, 0xdd, 0xc5, 0xc4, 0xbf, 0xe1, 0x2f, 0x36, 0xdd, 0x22, 0x22, 0xe1, 0xe4, 0x6d, 0xde, 0xbc,
-	0x99, 0xce, 0x7b, 0xaf, 0x0b, 0x61, 0x9a, 0x8b, 0x41, 0xae, 0xc8, 0x10, 0x7a, 0x69, 0x2e, 0x58,
-	0x0c, 0xf5, 0x31, 0x65, 0xfc, 0x5e, 0xce, 0x08, 0x9b, 0x50, 0x11, 0x59, 0xe4, 0x76, 0xdd, 0x7e,
-	0x98, 0x54, 0x44, 0x86, 0x87, 0xe0, 0x6b, 0x5a, 0xaa, 0x29, 0x8f, 0x2a, 0xb6, 0xb7, 0x42, 0xec,
-	0x0c, 0xc2, 0x62, 0x47, 0x8f, 0x84, 0x36, 0xd8, 0x83, 0x9a, 0x05, 0x91, 0xdb, 0xf5, 0xfa, 0x8d,
-	0x78, 0x7f, 0x50, 0x1c, 0xf8, 0xf9, 0x64, 0x52, 0x93, 0x05, 0xc7, 0x7a, 0x10, 0x3c, 0x8b, 0x05,
-	0xa7, 0xa5, 0xc1, 0x68, 0x5d, 0xda, 0x4b, 0x5e, 0x12, 0x98, 0x12, 0xb2, 0x0e, 0x34, 0x26, 0x42,
-	0xce, 0x1f, 0xb8, 0xd6, 0xe9, 0x9c, 0x6f, 0xab, 0x61, 0x01, 0xd4, 0x6e, 0x16, 0xb9, 0xf9, 0x64,
-	0x1d, 0x08, 0x46, 0x44, 0x6f, 0xb7, 0xa4, 0x10, 0xa1, 0x2a, 0xd3, 0x05, 0x5f, 0x4d, 0xd9, 0x9a,
-	0x8d, 0xc1, 0x9f, 0x70, 0xa5, 0x49, 0xee, 0x62, 0xb1, 0x05, 0x5e, 0x3a, 0x2f, 0x0d, 0x79, 0x49,
-	0x51, 0xe2, 0x11, 0x40, 0xae, 0x68, 0xc6, 0xb5, 0x16, 0x24, 0x23, 0xcf, 0xce, 0x6e, 0x74, 0xe2,
-	0x2f, 0x17, 0x82, 0x2b, 0x92, 0x46, 0xd1, 0x3b, 0x9e, 0x40, 0xfd, 0x5a, 0x51, 0x5e, 0xd8, 0xc3,
-	0xbf, 0x4e, 0xdb, 0x60, 0x61, 0xa9, 0xd0, 0xc1, 0x53, 0x08, 0x8b, 0x74, 0x6c, 0x32, 0xb8, 0x41,
-	0xb5, 0x9b, 0xeb, 0x2d, 0x1b, 0x1f, 0x73, 0x70, 0x08, 0x07, 0x77, 0xdc, 0x3c, 0x4a, 0x5e, 0xaa,
-	0xbe, 0x54, 0x94, 0x66, 0xd3, 0x54, 0x1b, 0x6c, 0xd8, 0xd1, 0xb2, 0xdb, 0xde, 0x04, 0xcc, 0x89,
-	0xcf, 0xc1, 0x7f, 0xe2, 0xea, 0x83, 0xab, 0xff, 0xad, 0xbf, 0x40, 0xd5, 0x7a, 0x38, 0x86, 0x6a,
-	0x11, 0x39, 0xb6, 0x4a, 0xfa, 0x37, 0xfd, 0x2d, 0x3b, 0x7d, 0x08, 0x2e, 0xb2, 0x6c, 0x97, 0xed,
-	0x3d, 0x0b, 0x57, 0x7f, 0x94, 0x39, 0xaf, 0xbe, 0x7d, 0x5b, 0xc3, 0xef, 0x00, 0x00, 0x00, 0xff,
-	0xff, 0xd2, 0x54, 0x75, 0xaa, 0x68, 0x02, 0x00, 0x00,
+	// 506 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x54, 0x5d, 0x6b, 0x13, 0x41,
+	0x14, 0x4d, 0xb2, 0x49, 0xb6, 0x39, 0x69, 0xd3, 0xf4, 0x96, 0xd6, 0x25, 0xa0, 0x94, 0x29, 0x6a,
+	0x2c, 0x12, 0x6a, 0xe2, 0x07, 0xf4, 0x45, 0xfc, 0xa2, 0x14, 0xac, 0x96, 0xd5, 0x07, 0x5f, 0xb7,
+	0xdd, 0x69, 0x58, 0x68, 0x76, 0x96, 0x99, 0x89, 0xe0, 0xab, 0x3f, 0xc8, 0xdf, 0x28, 0x3b, 0xbb,
+	0xad, 0x33, 0x1b, 0x4d, 0xe2, 0xdb, 0xdc, 0x99, 0x7b, 0xee, 0xb9, 0xe7, 0x5c, 0xe6, 0xa2, 0x13,
+	0x65, 0xc9, 0x28, 0x93, 0x42, 0x0b, 0xf2, 0xa2, 0x2c, 0x61, 0x63, 0x6c, 0x7c, 0x12, 0x31, 0x3f,
+	0x4b, 0xaf, 0x05, 0xf5, 0xd0, 0x48, 0xe2, 0xa0, 0x7e, 0x50, 0x1f, 0x76, 0xc2, 0x46, 0x12, 0xd3,
+	0x3e, 0xda, 0x4a, 0xcc, 0xe5, 0x15, 0x0f, 0x1a, 0xe6, 0xae, 0x8c, 0xd8, 0x31, 0x3a, 0x39, 0x46,
+	0x7d, 0x4c, 0x94, 0xa6, 0x43, 0xb4, 0x4c, 0x10, 0xd4, 0x0f, 0xbc, 0x61, 0x77, 0xbc, 0x35, 0xca,
+	0x09, 0x6e, 0x4b, 0x86, 0xad, 0x34, 0x7f, 0x63, 0x87, 0xf0, 0xbf, 0x26, 0x33, 0x2e, 0xe6, 0x9a,
+	0x82, 0xbb, 0xa3, 0x61, 0xf2, 0x42, 0x5f, 0x17, 0x21, 0xbb, 0x8f, 0xee, 0x45, 0x92, 0x4e, 0xcf,
+	0xb9, 0x52, 0xd1, 0x94, 0x57, 0xbb, 0x61, 0x3e, 0x5a, 0x1f, 0x66, 0x99, 0xfe, 0xc1, 0x2e, 0xd1,
+	0xbe, 0xe0, 0x52, 0x89, 0x94, 0x08, 0xcd, 0x34, 0x9a, 0xf1, 0x32, 0xc9, 0x9c, 0xa9, 0x0f, 0x2f,
+	0x9a, 0x16, 0x1d, 0x7b, 0x61, 0x7e, 0xa4, 0x07, 0x40, 0x26, 0xc5, 0x35, 0x57, 0x2a, 0x11, 0x69,
+	0xe0, 0x99, 0x5c, 0xeb, 0xc6, 0x54, 0x11, 0x31, 0x0f, 0x9a, 0x65, 0x15, 0x11, 0x73, 0xf6, 0x1c,
+	0xdd, 0xf3, 0xf9, 0x8d, 0x4e, 0x4a, 0xa2, 0x87, 0xf0, 0x8b, 0xd3, 0xad, 0xcc, 0xae, 0x91, 0x59,
+	0xdc, 0x85, 0x7e, 0x56, 0xbc, 0x8d, 0x7f, 0xb6, 0xe0, 0xbf, 0x13, 0xa9, 0x96, 0xe2, 0x86, 0x1e,
+	0x63, 0xe3, 0xbd, 0x14, 0x59, 0xee, 0x04, 0xb9, 0xa6, 0x0c, 0x60, 0xc2, 0x42, 0x4c, 0x8d, 0x9e,
+	0xa0, 0x93, 0x1b, 0x69, 0x4c, 0x24, 0xeb, 0x69, 0xd0, 0xbb, 0x43, 0x19, 0xa7, 0x59, 0x8d, 0x26,
+	0xd8, 0x3b, 0xe5, 0xfa, 0x73, 0xca, 0x0b, 0xe2, 0xb7, 0x52, 0x44, 0xf1, 0x55, 0xa4, 0x34, 0xd9,
+	0xed, 0x0c, 0xec, 0x80, 0xd5, 0x68, 0x84, 0xbe, 0x0d, 0x32, 0x0d, 0x2d, 0xcb, 0x7f, 0x8d, 0x7b,
+	0xa7, 0x5c, 0x5b, 0xea, 0xff, 0xd0, 0xf4, 0x4d, 0xa6, 0xf5, 0x34, 0x58, 0xb8, 0x61, 0x35, 0x3a,
+	0x01, 0xb9, 0x05, 0x0c, 0xe5, 0x7a, 0xd8, 0x09, 0xf6, 0x73, 0xd7, 0x56, 0x49, 0x74, 0x1d, 0x1c,
+	0x61, 0xc7, 0x01, 0x2d, 0x4a, 0x74, 0xf3, 0x4f, 0x10, 0xe4, 0xf9, 0x6b, 0x4a, 0x74, 0xb1, 0x2f,
+	0xb0, 0x5b, 0xc1, 0xfe, 0x43, 0x9d, 0x0b, 0x3b, 0xc6, 0xee, 0x59, 0xaa, 0xb8, 0xd4, 0x6b, 0x37,
+	0xf9, 0x0a, 0x7b, 0x05, 0xe2, 0x3f, 0xa9, 0xc6, 0xbf, 0x1a, 0x68, 0x7f, 0xe1, 0xf2, 0x3b, 0x97,
+	0x74, 0x84, 0x4d, 0x7b, 0xf4, 0x4b, 0xc7, 0xfe, 0x12, 0x3d, 0x77, 0x6a, 0x6b, 0x4e, 0xec, 0x08,
+	0x5b, 0x8e, 0xf9, 0xcb, 0x34, 0x3d, 0xc3, 0x76, 0xc5, 0xbc, 0x95, 0xc6, 0x3d, 0xc5, 0x76, 0xc5,
+	0xb8, 0x65, 0x04, 0x13, 0xec, 0x2c, 0x98, 0xb6, 0xd2, 0xb0, 0x6f, 0x68, 0x1a, 0x63, 0x1f, 0xa1,
+	0x99, 0xef, 0x9f, 0x32, 0xdf, 0x5a, 0x45, 0x15, 0x92, 0x21, 0xfc, 0x37, 0x71, 0xfc, 0xb7, 0x8f,
+	0xbd, 0x69, 0xc2, 0x72, 0xbd, 0xb1, 0xda, 0x65, 0xdb, 0x2c, 0xda, 0xc9, 0xef, 0x00, 0x00, 0x00,
+	0xff, 0xff, 0xdc, 0x06, 0x1d, 0xf4, 0x75, 0x05, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -367,6 +385,15 @@ type ControlClient interface {
 	DropNode(ctx context.Context, in *NodeInfo, opts ...grpc.CallOption) (*Empty, error)
 	ListNodes(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*NodesList, error)
 	GetOnePersonBroadcast(ctx context.Context, in *Person, opts ...grpc.CallOption) (*Person, error)
+	GetOnePersonNode(ctx context.Context, in *Person, opts ...grpc.CallOption) (*Person, error)
+	GetMultiPersonBroadcast(ctx context.Context, in *MultiPerson, opts ...grpc.CallOption) (*MultiPerson, error)
+	GetMultiPersonNode(ctx context.Context, in *MultiPerson, opts ...grpc.CallOption) (*MultiPerson, error)
+	DropOnePersonBroadcast(ctx context.Context, in *Person, opts ...grpc.CallOption) (*Empty, error)
+	DropOnePersonNode(ctx context.Context, in *Person, opts ...grpc.CallOption) (*Empty, error)
+	DropMultiPersonBroadcast(ctx context.Context, in *MultiPerson, opts ...grpc.CallOption) (*Empty, error)
+	DropMultiPersonNode(ctx context.Context, in *MultiPerson, opts ...grpc.CallOption) (*Empty, error)
+	InsertOnePersonNode(ctx context.Context, in *Person, opts ...grpc.CallOption) (*Empty, error)
+	InsertMultiPersonNode(ctx context.Context, in *MultiPerson, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type controlClient struct {
@@ -404,11 +431,101 @@ func (c *controlClient) GetOnePersonBroadcast(ctx context.Context, in *Person, o
 	return out, nil
 }
 
+func (c *controlClient) GetOnePersonNode(ctx context.Context, in *Person, opts ...grpc.CallOption) (*Person, error) {
+	out := new(Person)
+	err := c.cc.Invoke(ctx, "/api.Control/GetOnePersonNode", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *controlClient) GetMultiPersonBroadcast(ctx context.Context, in *MultiPerson, opts ...grpc.CallOption) (*MultiPerson, error) {
+	out := new(MultiPerson)
+	err := c.cc.Invoke(ctx, "/api.Control/GetMultiPersonBroadcast", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *controlClient) GetMultiPersonNode(ctx context.Context, in *MultiPerson, opts ...grpc.CallOption) (*MultiPerson, error) {
+	out := new(MultiPerson)
+	err := c.cc.Invoke(ctx, "/api.Control/GetMultiPersonNode", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *controlClient) DropOnePersonBroadcast(ctx context.Context, in *Person, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/api.Control/DropOnePersonBroadcast", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *controlClient) DropOnePersonNode(ctx context.Context, in *Person, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/api.Control/DropOnePersonNode", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *controlClient) DropMultiPersonBroadcast(ctx context.Context, in *MultiPerson, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/api.Control/DropMultiPersonBroadcast", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *controlClient) DropMultiPersonNode(ctx context.Context, in *MultiPerson, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/api.Control/DropMultiPersonNode", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *controlClient) InsertOnePersonNode(ctx context.Context, in *Person, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/api.Control/InsertOnePersonNode", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *controlClient) InsertMultiPersonNode(ctx context.Context, in *MultiPerson, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/api.Control/InsertMultiPersonNode", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ControlServer is the server API for Control service.
 type ControlServer interface {
 	DropNode(context.Context, *NodeInfo) (*Empty, error)
 	ListNodes(context.Context, *Empty) (*NodesList, error)
 	GetOnePersonBroadcast(context.Context, *Person) (*Person, error)
+	GetOnePersonNode(context.Context, *Person) (*Person, error)
+	GetMultiPersonBroadcast(context.Context, *MultiPerson) (*MultiPerson, error)
+	GetMultiPersonNode(context.Context, *MultiPerson) (*MultiPerson, error)
+	DropOnePersonBroadcast(context.Context, *Person) (*Empty, error)
+	DropOnePersonNode(context.Context, *Person) (*Empty, error)
+	DropMultiPersonBroadcast(context.Context, *MultiPerson) (*Empty, error)
+	DropMultiPersonNode(context.Context, *MultiPerson) (*Empty, error)
+	InsertOnePersonNode(context.Context, *Person) (*Empty, error)
+	InsertMultiPersonNode(context.Context, *MultiPerson) (*Empty, error)
 }
 
 func RegisterControlServer(s *grpc.Server, srv ControlServer) {
@@ -469,6 +586,168 @@ func _Control_GetOnePersonBroadcast_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Control_GetOnePersonNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Person)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ControlServer).GetOnePersonNode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Control/GetOnePersonNode",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ControlServer).GetOnePersonNode(ctx, req.(*Person))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Control_GetMultiPersonBroadcast_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MultiPerson)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ControlServer).GetMultiPersonBroadcast(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Control/GetMultiPersonBroadcast",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ControlServer).GetMultiPersonBroadcast(ctx, req.(*MultiPerson))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Control_GetMultiPersonNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MultiPerson)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ControlServer).GetMultiPersonNode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Control/GetMultiPersonNode",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ControlServer).GetMultiPersonNode(ctx, req.(*MultiPerson))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Control_DropOnePersonBroadcast_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Person)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ControlServer).DropOnePersonBroadcast(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Control/DropOnePersonBroadcast",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ControlServer).DropOnePersonBroadcast(ctx, req.(*Person))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Control_DropOnePersonNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Person)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ControlServer).DropOnePersonNode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Control/DropOnePersonNode",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ControlServer).DropOnePersonNode(ctx, req.(*Person))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Control_DropMultiPersonBroadcast_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MultiPerson)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ControlServer).DropMultiPersonBroadcast(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Control/DropMultiPersonBroadcast",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ControlServer).DropMultiPersonBroadcast(ctx, req.(*MultiPerson))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Control_DropMultiPersonNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MultiPerson)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ControlServer).DropMultiPersonNode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Control/DropMultiPersonNode",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ControlServer).DropMultiPersonNode(ctx, req.(*MultiPerson))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Control_InsertOnePersonNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Person)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ControlServer).InsertOnePersonNode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Control/InsertOnePersonNode",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ControlServer).InsertOnePersonNode(ctx, req.(*Person))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Control_InsertMultiPersonNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MultiPerson)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ControlServer).InsertMultiPersonNode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Control/InsertMultiPersonNode",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ControlServer).InsertMultiPersonNode(ctx, req.(*MultiPerson))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Control_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "api.Control",
 	HandlerType: (*ControlServer)(nil),
@@ -485,6 +764,42 @@ var _Control_serviceDesc = grpc.ServiceDesc{
 			MethodName: "GetOnePersonBroadcast",
 			Handler:    _Control_GetOnePersonBroadcast_Handler,
 		},
+		{
+			MethodName: "GetOnePersonNode",
+			Handler:    _Control_GetOnePersonNode_Handler,
+		},
+		{
+			MethodName: "GetMultiPersonBroadcast",
+			Handler:    _Control_GetMultiPersonBroadcast_Handler,
+		},
+		{
+			MethodName: "GetMultiPersonNode",
+			Handler:    _Control_GetMultiPersonNode_Handler,
+		},
+		{
+			MethodName: "DropOnePersonBroadcast",
+			Handler:    _Control_DropOnePersonBroadcast_Handler,
+		},
+		{
+			MethodName: "DropOnePersonNode",
+			Handler:    _Control_DropOnePersonNode_Handler,
+		},
+		{
+			MethodName: "DropMultiPersonBroadcast",
+			Handler:    _Control_DropMultiPersonBroadcast_Handler,
+		},
+		{
+			MethodName: "DropMultiPersonNode",
+			Handler:    _Control_DropMultiPersonNode_Handler,
+		},
+		{
+			MethodName: "InsertOnePersonNode",
+			Handler:    _Control_InsertOnePersonNode_Handler,
+		},
+		{
+			MethodName: "InsertMultiPersonNode",
+			Handler:    _Control_InsertMultiPersonNode_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "api.proto",
@@ -494,7 +809,12 @@ var _Control_serviceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type ServerClient interface {
-	GetOnePersonBroadcast(ctx context.Context, in *Person, opts ...grpc.CallOption) (*Person, error)
+	GetOnePerson(ctx context.Context, in *Person, opts ...grpc.CallOption) (*Person, error)
+	GetMultiPerson(ctx context.Context, in *MultiPerson, opts ...grpc.CallOption) (*MultiPerson, error)
+	DropOnePerson(ctx context.Context, in *Person, opts ...grpc.CallOption) (*Empty, error)
+	DropMultiPerson(ctx context.Context, in *MultiPerson, opts ...grpc.CallOption) (*Empty, error)
+	InsertOnePerson(ctx context.Context, in *Person, opts ...grpc.CallOption) (*Empty, error)
+	InsertMultiPerson(ctx context.Context, in *MultiPerson, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type serverClient struct {
@@ -505,9 +825,54 @@ func NewServerClient(cc *grpc.ClientConn) ServerClient {
 	return &serverClient{cc}
 }
 
-func (c *serverClient) GetOnePersonBroadcast(ctx context.Context, in *Person, opts ...grpc.CallOption) (*Person, error) {
+func (c *serverClient) GetOnePerson(ctx context.Context, in *Person, opts ...grpc.CallOption) (*Person, error) {
 	out := new(Person)
-	err := c.cc.Invoke(ctx, "/api.Server/GetOnePersonBroadcast", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.Server/GetOnePerson", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serverClient) GetMultiPerson(ctx context.Context, in *MultiPerson, opts ...grpc.CallOption) (*MultiPerson, error) {
+	out := new(MultiPerson)
+	err := c.cc.Invoke(ctx, "/api.Server/GetMultiPerson", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serverClient) DropOnePerson(ctx context.Context, in *Person, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/api.Server/DropOnePerson", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serverClient) DropMultiPerson(ctx context.Context, in *MultiPerson, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/api.Server/DropMultiPerson", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serverClient) InsertOnePerson(ctx context.Context, in *Person, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/api.Server/InsertOnePerson", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serverClient) InsertMultiPerson(ctx context.Context, in *MultiPerson, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/api.Server/InsertMultiPerson", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -516,27 +881,122 @@ func (c *serverClient) GetOnePersonBroadcast(ctx context.Context, in *Person, op
 
 // ServerServer is the server API for Server service.
 type ServerServer interface {
-	GetOnePersonBroadcast(context.Context, *Person) (*Person, error)
+	GetOnePerson(context.Context, *Person) (*Person, error)
+	GetMultiPerson(context.Context, *MultiPerson) (*MultiPerson, error)
+	DropOnePerson(context.Context, *Person) (*Empty, error)
+	DropMultiPerson(context.Context, *MultiPerson) (*Empty, error)
+	InsertOnePerson(context.Context, *Person) (*Empty, error)
+	InsertMultiPerson(context.Context, *MultiPerson) (*Empty, error)
 }
 
 func RegisterServerServer(s *grpc.Server, srv ServerServer) {
 	s.RegisterService(&_Server_serviceDesc, srv)
 }
 
-func _Server_GetOnePersonBroadcast_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Server_GetOnePerson_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Person)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ServerServer).GetOnePersonBroadcast(ctx, in)
+		return srv.(ServerServer).GetOnePerson(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Server/GetOnePersonBroadcast",
+		FullMethod: "/api.Server/GetOnePerson",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServerServer).GetOnePersonBroadcast(ctx, req.(*Person))
+		return srv.(ServerServer).GetOnePerson(ctx, req.(*Person))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Server_GetMultiPerson_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MultiPerson)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServerServer).GetMultiPerson(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Server/GetMultiPerson",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServerServer).GetMultiPerson(ctx, req.(*MultiPerson))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Server_DropOnePerson_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Person)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServerServer).DropOnePerson(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Server/DropOnePerson",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServerServer).DropOnePerson(ctx, req.(*Person))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Server_DropMultiPerson_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MultiPerson)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServerServer).DropMultiPerson(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Server/DropMultiPerson",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServerServer).DropMultiPerson(ctx, req.(*MultiPerson))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Server_InsertOnePerson_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Person)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServerServer).InsertOnePerson(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Server/InsertOnePerson",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServerServer).InsertOnePerson(ctx, req.(*Person))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Server_InsertMultiPerson_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MultiPerson)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServerServer).InsertMultiPerson(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Server/InsertMultiPerson",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServerServer).InsertMultiPerson(ctx, req.(*MultiPerson))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -546,8 +1006,28 @@ var _Server_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*ServerServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetOnePersonBroadcast",
-			Handler:    _Server_GetOnePersonBroadcast_Handler,
+			MethodName: "GetOnePerson",
+			Handler:    _Server_GetOnePerson_Handler,
+		},
+		{
+			MethodName: "GetMultiPerson",
+			Handler:    _Server_GetMultiPerson_Handler,
+		},
+		{
+			MethodName: "DropOnePerson",
+			Handler:    _Server_DropOnePerson_Handler,
+		},
+		{
+			MethodName: "DropMultiPerson",
+			Handler:    _Server_DropMultiPerson_Handler,
+		},
+		{
+			MethodName: "InsertOnePerson",
+			Handler:    _Server_InsertOnePerson_Handler,
+		},
+		{
+			MethodName: "InsertMultiPerson",
+			Handler:    _Server_InsertMultiPerson_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

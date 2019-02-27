@@ -11,8 +11,6 @@ import (
 	"github.com/AntanasMaziliauskas/grpc/node/person"
 )
 
-//FLAGAs Config failas
-//Config Node ID, Portas, kur jungtis, Koks mano portas.
 func main() {
 	var config node.Config
 	var err error
@@ -26,10 +24,11 @@ func main() {
 	config.ApplyDefaults()
 
 	app := node.Application{
-		Port:       config.Node.Listen,
+		//Port:       config.Node.Listen,
 		ID:         config.Node.ID,
 		ServerPort: config.Server.Source,
 		Person: &person.DataFromFile{
+			ID:   config.Node.ID,
 			Path: config.Node.Path},
 	}
 

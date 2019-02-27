@@ -2,12 +2,14 @@ package node
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net"
 	"time"
 
 	"github.com/AntanasMaziliauskas/grpc/api"
 	"github.com/AntanasMaziliauskas/grpc/node/person"
+	"github.com/phayes/freeport"
 	"google.golang.org/grpc"
 )
 
@@ -71,6 +73,12 @@ func (a *Application) GreetingWithServer() {
 //?????
 func (a *Application) SettinggRPCServer() error {
 	var err error
+	//Sugeneruoja random porta
+	port, err := freeport.GetFreePort()
+	if err != nil {
+		log.Fatal(err)
+	}
+	a.Port = fmt.Sprintf(":%d", port)
 
 	a.lis, err = net.Listen("tcp", a.Port)
 	if err != nil {
@@ -80,7 +88,7 @@ func (a *Application) SettinggRPCServer() error {
 	// create a gRPC server object
 	a.grpcServer = grpc.NewServer()
 	// attach the Greeting service to the server
-	//api.RegisterGetOnePersonBroadcastServer(a.grpcServer, a)
+	api.RegisterServerServer(a.grpcServer, a.Person)
 
 	return err
 }
@@ -112,6 +120,7 @@ func (a *Application) PingServer() {
 	}()
 }
 
+/*
 //Ateinancios uzklausos priimimas ir vykdymas
 func (a *Application) FindData(ctx context.Context, in *api.LookFor) (*api.Person, error) {
 	name := in.Name
@@ -120,3 +129,4 @@ func (a *Application) FindData(ctx context.Context, in *api.LookFor) (*api.Perso
 
 	return &api.Person{Name: person.Name, Age: person.Age, Profession: person.Profession}, nil
 }
+*/

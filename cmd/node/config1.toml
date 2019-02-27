@@ -1,6 +1,6 @@
 [Node]
 id = "Node-002"
-listen = "0.0.0.0:8887"
+#listen = "0.0.0.0:8887"
 #port = "8887"
 path = "data.json"
 
