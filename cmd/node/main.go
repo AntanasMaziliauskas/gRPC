@@ -3,9 +3,12 @@ package main
 import (
 	"flag"
 	"log"
+	"math/rand"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
+	"time"
 
 	"github.com/AntanasMaziliauskas/grpc/node"
 	"github.com/AntanasMaziliauskas/grpc/node/person"
@@ -22,13 +25,15 @@ func main() {
 		log.Fatalf("Could not read config file: %s", err)
 	}
 	config.ApplyDefaults()
-
+	//Random Node name
+	rand.Seed(time.Now().UnixNano())
+	id := "Node-" + strconv.Itoa(rand.Intn(1000))
 	app := node.Application{
 		//Port:       config.Node.Listen,
-		ID:         config.Node.ID,
+		ID:         id,
 		ServerPort: config.Server.Source,
 		Person: &person.DataFromFile{
-			ID:   config.Node.ID,
+			ID:   id,
 			Path: config.Node.Path},
 	}
 

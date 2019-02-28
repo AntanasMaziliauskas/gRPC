@@ -18,6 +18,20 @@ func main() {
 
 	app.Commands = []cli.Command{
 		{
+			Name:  "listpersonsbroadcast",
+			Usage: "Looks for information of specific person on all nodes that are connected",
+			Action: func(c *cli.Context) error {
+				return control.ListPersonsBroadcast(c)
+			},
+		},
+		{
+			Name:  "listpersonsnode",
+			Usage: "Looks for information of specific person on all nodes that are connected",
+			Action: func(c *cli.Context) error {
+				return control.ListPersonsNode(c)
+			},
+		},
+		{
 			Name:  "dropnode",
 			Usage: "Looks for information of specific person on all nodes that are connected",
 			Action: func(c *cli.Context) error {
@@ -101,6 +115,13 @@ func main() {
 				return control.InsertMultiPersonNode(c)
 			},
 		},
+		{
+			Name:  "moveoneperson",
+			Usage: "Looks for information of specific person on all nodes that are connected",
+			Action: func(c *cli.Context) error {
+				return control.MoveOnePerson(c)
+			},
+		},
 	}
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
@@ -114,12 +135,6 @@ func main() {
 			Usage: "One or a list of names you want to get info about. For a list use ','",
 		},
 	}
-	/*flag.Usage = func() {
-		fmt.Printf("Usage:\n")
-		fmt.Printf("   %s\n", filepath.Base(os.Args[0]))
-		flag.PrintDefaults()
-	}*/
-
 	if err := app.Run(os.Args); err != nil {
 		logrus.WithError(err).Fatal("Starting application")
 	}

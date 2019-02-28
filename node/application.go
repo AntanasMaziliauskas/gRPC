@@ -64,7 +64,7 @@ func (a *Application) GreetingWithServer() {
 	c := api.NewNodeClient(a.conn)
 	response, err := c.AddNode(context.Background(), &api.NodeInfo{Id: a.ID, Source: a.Port})
 	if err != nil {
-		log.Fatalf("Error when calling SayHello: %s", err)
+		log.Fatalf("Error when calling AddNode: %s", err)
 	}
 	log.Printf("Timeout in: %d seconds", response.Timeout)
 	a.Timeout = response.Timeout

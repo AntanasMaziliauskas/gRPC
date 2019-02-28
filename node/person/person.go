@@ -3,6 +3,7 @@ package person
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 
@@ -11,6 +12,7 @@ import (
 
 type PersonService interface {
 	Init() error
+	ListPersons(context.Context, *api.Empty) (*api.MultiPerson, error)
 	GetOnePerson(context.Context, *api.Person) (*api.Person, error)
 	GetMultiPerson(context.Context, *api.MultiPerson) (*api.MultiPerson, error)
 	DropOnePerson(context.Context, *api.Person) (*api.Empty, error)
@@ -60,41 +62,66 @@ func (d *DataFromFile) readFile() ([]Person, error) {
 	return data, nil
 }
 
+func (d *DataFromFile) ListPersons(ctx context.Context, in *api.Empty) (*api.MultiPerson, error) {
+	listOfData := &api.MultiPerson{}
+
+	for _, v := range d.Data {
+		listOfData.Persons = append(listOfData.Persons, &api.Person{
+			Name:       v.Name,
+			Age:        v.Age,
+			Profession: v.Profession,
+			Node:       d.ID,
+		})
+	}
+	/*if len(listOfData.Persons) < 1 {
+		err := errors.New("There are no persons in this Node")
+
+		return listOfData, err
+	}*/
+
+	return listOfData, nil
+}
+
 //GetOne function looks through the structure of data and return
 func (d *DataFromFile) GetOne(name string) (Person, error) {
-	found := sliceContainsString(name, d.Data)
+	found, _ := sliceContainsString(name, d.Data)
 	return found, nil
 }
 
 // SliceContainsString will return true if needle has been found in haystack.
-func sliceContainsString(needle string, haystack []Person) Person {
+func sliceContainsString(needle string, haystack []Person) (Person, error) {
 	for _, v := range haystack {
 		if v.Name == needle {
-			return v
+			return v, nil
 		}
 	}
-
-	return Person{}
+	//TODO: Koks error gali buti, kad tiktu ir one person ir multiperson?
+	err := errors.New("Unable to locate given person")
+	return Person{}, err
 }
 
 //GetOnePersonBroadcast function go through the list of connected Nodes
 //requests to look for data with the name given, retrieved the data and return it.
 func (d *DataFromFile) GetOnePerson(ctx context.Context, in *api.Person) (*api.Person, error) {
 
-	found := sliceContainsString(in.Name, d.Data)
+	found, err := sliceContainsString(in.Name, d.Data)
 
-	return &api.Person{Name: found.Name, Age: found.Age, Profession: found.Profession}, nil
+	return &api.Person{Name: found.Name, Age: found.Age, Profession: found.Profession, Node: d.ID}, err
 }
 
 func (d *DataFromFile) GetMultiPerson(ctx context.Context, in *api.MultiPerson) (*api.MultiPerson, error) {
 	listOfData := &api.MultiPerson{}
 
 	for _, k := range in.Persons {
-		found := sliceContainsString(k.Name, d.Data)
+		found, _ := sliceContainsString(k.Name, d.Data)
 
 		listOfData.Persons = append(listOfData.Persons, &api.Person{Name: found.Name, Age: found.Age, Profession: found.Profession, Node: d.ID})
 	}
+	if len(listOfData.Persons) < 1 {
 
+		err := errors.New("Unable to locate given persons")
+		return listOfData, err
+	}
 	return listOfData, nil
 }
 
@@ -135,6 +162,7 @@ func (d *DataFromFile) InsertOnePerson(ctx context.Context, in *api.Person) (*ap
 	fmt.Println(d.Data)
 	d.Data = append(d.Data, Person{Name: in.Name, Age: in.Age, Profession: in.Profession})
 	fmt.Println(d.Data)
+
 	return &api.Empty{}, nil
 }
 

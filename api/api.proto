@@ -17,7 +17,9 @@ message Timeout {
 message PingMessage {
     string id = 1;
   }
+//TODO: Ar tikrai naudoju? Pervadinti tuomet
 message Empty {
+  string response =1;
 }
 
 message Person {
@@ -33,6 +35,8 @@ repeated Person Persons =1;
 
 
 service Control {
+  rpc ListPersonsBroadcast(Empty) returns (MultiPerson) {}
+  rpc ListPersonsNode(NodeInfo) returns (MultiPerson) {}
   rpc DropNode(NodeInfo) returns (Empty) {}
   rpc ListNodes(Empty) returns (NodesList) {}
   rpc GetOnePersonBroadcast(Person) returns (Person) {}
@@ -48,6 +52,7 @@ service Control {
 }
 
 service Server {
+  rpc ListPersons (Empty) returns (MultiPerson) {}
   rpc GetOnePerson(Person) returns (Person) {}
   rpc GetMultiPerson(MultiPerson) returns (MultiPerson) {}
   rpc DropOnePerson(Person) returns (Empty) {}
