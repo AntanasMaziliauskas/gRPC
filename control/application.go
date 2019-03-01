@@ -15,12 +15,14 @@ import (
 type Application struct {
 	client api.ControlClient
 }
+
 type Person struct {
 	Name       string
 	Age        int64
 	Profession string
 }
 
+//Init function connects to a server
 func (a *Application) Init() {
 	//TODO: Ar paduodame serverio adresa per flag?
 	source := "0.0.0.0:7778"
@@ -31,15 +33,23 @@ func (a *Application) Init() {
 	a.client = api.NewControlClient(conn)
 }
 
+//ListPersonsBroadcast function get a list of persons per every Node
 func (a *Application) ListPersonsBroadcast(c *cli.Context) error {
-	response, err := a.client.ListPersonsBroadcast(context.Background(), &api.Empty{})
-	if err != nil {
+	var (
+		response *api.MultiPerson
+		err      error
+	)
+
+	if response, err = a.client.ListPersonsBroadcast(context.Background(), &api.Empty{}); err != nil {
 		log.Fatalf("Error when calling ListPersonsBroadcast: %s", err)
 	}
+
 	log.Println("Response: ", response)
 
 	return nil
 }
+
+//ListPersonsNode return list of persons from specified Node
 func (a *Application) ListPersonsNode(c *cli.Context) error {
 	response, err := a.client.ListPersonsNode(context.Background(), &api.NodeInfo{Id: c.GlobalString("node")})
 	if err != nil {
@@ -49,6 +59,9 @@ func (a *Application) ListPersonsNode(c *cli.Context) error {
 
 	return nil
 }
+
+//GetOnePersonBroadcast return information about the preson
+//Looks through every Node that's connected to the server
 func (a *Application) GetOnePersonBroadcast(c *cli.Context) error {
 	response, err := a.client.GetOnePersonBroadcast(context.Background(), &api.Person{Name: c.GlobalString("person")})
 	if err != nil {
@@ -59,6 +72,7 @@ func (a *Application) GetOnePersonBroadcast(c *cli.Context) error {
 	return nil
 }
 
+//DropNode deletes Node from the server
 func (a *Application) DropNode(c *cli.Context) error {
 	response, err := a.client.DropNode(context.Background(), &api.NodeInfo{Id: c.GlobalString("node")})
 	if err != nil {
@@ -69,6 +83,7 @@ func (a *Application) DropNode(c *cli.Context) error {
 	return nil
 }
 
+//ListNodes returns a list of Nodes that are connected to the server
 func (a *Application) ListNodes(c *cli.Context) error {
 	response, err := a.client.ListNodes(context.Background(), &api.Empty{})
 	if err != nil {
@@ -79,6 +94,7 @@ func (a *Application) ListNodes(c *cli.Context) error {
 	return nil
 }
 
+//GetOnePersonNode return information about the person from specified Node
 func (a *Application) GetOnePersonNode(c *cli.Context) error {
 	response, err := a.client.GetOnePersonNode(context.Background(), &api.Person{Name: c.GlobalString("person"), Node: c.GlobalString("node")})
 	if err != nil {
@@ -89,6 +105,8 @@ func (a *Application) GetOnePersonNode(c *cli.Context) error {
 	return nil
 }
 
+//GetMultiPersonBroadcast returns information about multiple persons
+//Looks through every Node that's connected to the server
 func (a *Application) GetMultiPersonBroadcast(c *cli.Context) error {
 	multiPerson := &api.MultiPerson{}
 	personList := a.parsePersons(c.GlobalString("person"))
@@ -105,6 +123,7 @@ func (a *Application) GetMultiPersonBroadcast(c *cli.Context) error {
 	return nil
 }
 
+//GetMultiPersonNode returns multiple persons from specified Node
 func (a *Application) GetMultiPersonNode(c *cli.Context) error {
 	multiPerson := &api.MultiPerson{}
 	personList := a.parsePersons(c.GlobalString("person"))
@@ -121,7 +140,7 @@ func (a *Application) GetMultiPersonNode(c *cli.Context) error {
 	return nil
 }
 
-//TODO: Sutvarkyti, kad grazintu zinute ar pavyko ar ne dropinti
+//DropOnePersonBroadcast deletes person from any Node that is connected to the server
 func (a *Application) DropOnePersonBroadcast(c *cli.Context) error {
 	response, err := a.client.DropOnePersonBroadcast(context.Background(), &api.Person{Name: c.GlobalString("person")})
 	if err != nil {
@@ -132,7 +151,7 @@ func (a *Application) DropOnePersonBroadcast(c *cli.Context) error {
 	return nil
 }
 
-//TODO: sutvarkyti, kad grazintu zinute ar pavyko ar ne dropinti
+//DropOnePersonNode deletes person from specified Node
 func (a *Application) DropOnePersonNode(c *cli.Context) error {
 	response, err := a.client.DropOnePersonNode(context.Background(), &api.Person{Name: c.GlobalString("person"), Node: c.GlobalString("node")})
 	if err != nil {
@@ -143,7 +162,7 @@ func (a *Application) DropOnePersonNode(c *cli.Context) error {
 	return nil
 }
 
-//TODO: sutvarkyti, kad grazintu zinute ar pavyko ar ne dropinti
+//DropMultiPersonBroadcast drops multiple persons going through every Node that's connected to the server
 func (a *Application) DropMultiPersonBroadcast(c *cli.Context) error {
 	multiPerson := &api.MultiPerson{}
 
@@ -160,7 +179,7 @@ func (a *Application) DropMultiPersonBroadcast(c *cli.Context) error {
 	return nil
 }
 
-//TODO: sutvarkyti, kad grazintu zinute ar pavyko ar ne dropinti
+//DropMultiPersonNode deleted multiple persons from specified Node
 func (a *Application) DropMultiPersonNode(c *cli.Context) error {
 	multiPerson := &api.MultiPerson{}
 
@@ -177,7 +196,7 @@ func (a *Application) DropMultiPersonNode(c *cli.Context) error {
 	return nil
 }
 
-//TODO: sutvarkyti, kad grazintu zinute ar pavyko insert ar ne
+//InsertOnePersonNode adds given person to specified Node
 func (a *Application) InsertOnePersonNode(c *cli.Context) error {
 	personList := a.parsePerson(c.GlobalString("person"))
 	response, err := a.client.InsertOnePersonNode(context.Background(), &api.Person{Name: personList[0].Name, Age: personList[0].Age, Profession: personList[0].Profession, Node: c.GlobalString("node")})
@@ -189,7 +208,7 @@ func (a *Application) InsertOnePersonNode(c *cli.Context) error {
 	return nil
 }
 
-//TODO: sutvarkyti, kad grazintu zinute ar pavyko insert ar ne
+//InsertMultiPersonNode adds multiple persons to specified Node
 func (a *Application) InsertMultiPersonNode(c *cli.Context) error {
 	multiPerson := &api.MultiPerson{}
 
@@ -206,13 +225,13 @@ func (a *Application) InsertMultiPersonNode(c *cli.Context) error {
 	return nil
 }
 
+//MoveOnePerson function moves specified person to specific Node
 func (a *Application) MoveOnePerson(c *cli.Context) error {
 	response, err := a.client.GetOnePersonBroadcast(context.Background(), &api.Person{Name: c.GlobalString("person")})
 	if err != nil {
 		log.Fatalf("Error when calling MoveOnePerson: %s", err)
 	}
 	if response.Node != c.GlobalString("node") {
-		//TODO: Koki patikrinima daryti Insert funkcijai?
 		a.client.InsertOnePersonNode(context.Background(), &api.Person{
 			Name:       response.Name,
 			Age:        response.Age,
@@ -221,7 +240,6 @@ func (a *Application) MoveOnePerson(c *cli.Context) error {
 		if err != nil {
 			log.Fatalf("Error when calling MoveOnePerson: %s", err)
 		}
-		//TODO: Koki patikrinima daryti su Drop?
 		a.client.DropOnePersonNode(context.Background(), response)
 		if err != nil {
 			log.Fatalf("Error when calling DropOnePersonNode: %s", err)
@@ -246,9 +264,10 @@ func (a *Application) parsePerson(s string) []Person {
 		age  int64
 	)
 
-	persons := strings.Split(s, ".")
+	persons := strings.Split(s, ",")
 	for _, k := range persons {
-		personSlice := strings.Split(k, ",")
+		personSlice := strings.Split(k, ".")
+		fmt.Println(len(personSlice))
 		if len(personSlice) > 1 {
 			age, _ = strconv.ParseInt(personSlice[1], 10, 32)
 		}

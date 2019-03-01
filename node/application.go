@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/AntanasMaziliauskas/grpc/api"
@@ -13,7 +14,11 @@ import (
 	"google.golang.org/grpc"
 )
 
+//Application struct
 type Application struct {
+	ctx        context.Context
+	cancel     context.CancelFunc
+	wg         *sync.WaitGroup
 	conn       *grpc.ClientConn
 	Port       string
 	ID         string
@@ -25,19 +30,28 @@ type Application struct {
 	Person     person.PersonService
 }
 
-//Init function runs Person.Init, connects to server and ?????
+//Init function runs Person.Init, connects to server and sets gRPC server
 func (a *Application) Init() {
+	var err error
 
-	a.Person.Init() //Error ReadFile error
+	a.wg = &sync.WaitGroup{}
+	a.ctx, a.cancel = context.WithCancel(context.Background())
 
-	a.ConnectToServer() //Error log.Fatalf("did not connect: %s", err)
+	a.Person.Init()
 
-	a.SettinggRPCServer()
+	if err = a.ConnectToServer(); err != nil {
+		log.Fatalf("Did not connect to the server: %s", err)
+	}
+
+	a.SetgRPCServer()
 
 }
+
+//Start function send a greeting to the server, launches ping go routine
+//starts gRPC server
 func (a *Application) Start() {
 
-	a.GreetingWithServer()
+	a.ConnectWithServer()
 
 	a.PingServer()
 
@@ -46,8 +60,10 @@ func (a *Application) Start() {
 }
 
 func (a *Application) Stop() {
-	//closing connection to the server
+	a.grpcServer.Stop()
 	a.conn.Close()
+	a.cancel()
+	a.wg.Wait()
 }
 
 //ConnectToServer function connects to server
@@ -59,8 +75,8 @@ func (a *Application) ConnectToServer() error {
 	return err
 }
 
-//Connectionas su serveriu | Start Pasisveikinimo issiuntimas serveriui // pervadinti i sayhello
-func (a *Application) GreetingWithServer() {
+//ConnectWithServer function connects to a server and sends information about this Node
+func (a *Application) ConnectWithServer() {
 	c := api.NewNodeClient(a.conn)
 	response, err := c.AddNode(context.Background(), &api.NodeInfo{Id: a.ID, Source: a.Port})
 	if err != nil {
@@ -70,39 +86,46 @@ func (a *Application) GreetingWithServer() {
 	a.Timeout = response.Timeout
 }
 
-//?????
-func (a *Application) SettinggRPCServer() error {
-	var err error
-	//Sugeneruoja random porta
-	port, err := freeport.GetFreePort()
-	if err != nil {
-		log.Fatal(err)
+//SetgRPCServer generates random Port, sets listener, creates gRPC server object
+//Attaches neccessary services to the server
+func (a *Application) SetgRPCServer() error {
+	var (
+		err  error
+		port int
+	)
+
+	if port, err = freeport.GetFreePort(); err != nil {
+		log.Fatal("Failed to generate random port: ", err)
 	}
 	a.Port = fmt.Sprintf(":%d", port)
 
-	a.lis, err = net.Listen("tcp", a.Port)
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+	if a.lis, err = net.Listen("tcp", a.Port); err != nil {
+		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	// create a gRPC server object
 	a.grpcServer = grpc.NewServer()
-	// attach the Greeting service to the server
 	api.RegisterServerServer(a.grpcServer, a.Person)
 
 	return err
 }
 
-//Listeneris serverio |START
+//StartgRPCServer function start gRPC server
 func (a *Application) StartgRPCServer() {
-	if err := a.grpcServer.Serve(a.lis); err != nil {
-		log.Fatalf("failed to serve: %s", err)
-	}
+	a.wg.Add(1)
+	go func() {
+		defer a.wg.Done()
+		if err := a.grpcServer.Serve(a.lis); err != nil {
+			log.Fatalf("failed to serve: %s", err)
+		}
+	}()
 }
 
-//Pinginimo siuntimas serveriui | Start GO rutina
+//PingServer launches go routine to start pingin server
 func (a *Application) PingServer() {
 	p := api.NewNodeClient(a.conn)
+
+	a.wg.Add(1)
+
 	go func() {
 		ticker := time.NewTicker(time.Duration(a.Timeout) / 2 * time.Second)
 		for {
@@ -113,20 +136,12 @@ func (a *Application) PingServer() {
 				if err != nil {
 					log.Fatalf("Error when calling PingMe: %s", err)
 				}
-				//log.Printf("Response from server: %d", response)
-				//wg.Done()
+			case <-a.ctx.Done():
+				log.Println("Pinging has stopped")
+				a.wg.Done()
+
+				return
 			}
 		}
 	}()
 }
-
-/*
-//Ateinancios uzklausos priimimas ir vykdymas
-func (a *Application) FindData(ctx context.Context, in *api.LookFor) (*api.Person, error) {
-	name := in.Name
-
-	person, _ := a.Person.GetOne(name)
-
-	return &api.Person{Name: person.Name, Age: person.Age, Profession: person.Profession}, nil
-}
-*/

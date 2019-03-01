@@ -4,6 +4,7 @@ import (
 	"net/http"
 )
 
+/*
 //StartHTTPServer sets handlers and start the ListenAndServe function
 func (a *Application) StartHTTPServer() error {
 	http.HandleFunc("/list", a.HTTPHandlerList)
@@ -12,7 +13,7 @@ func (a *Application) StartHTTPServer() error {
 
 	return err
 }
-
+*/
 //HTTPHandleGet function get the data to be displayed
 func (a *Application) HTTPHandleGet(w http.ResponseWriter, r *http.Request) {
 	/*var (

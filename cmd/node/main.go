@@ -15,102 +15,46 @@ import (
 )
 
 func main() {
-	var config node.Config
-	var err error
-	//Flag
+	var (
+		config node.Config
+		err    error
+	)
+
 	conf := flag.String("config", "config.toml", "Config file to be used")
+	storage := flag.String("storage", "memory", "Storage to be used. Can only be 'memory' for now")
 	flag.Parse()
 
 	if config, err = node.ReadConfig(*conf); err != nil {
 		log.Fatalf("Could not read config file: %s", err)
 	}
 	config.ApplyDefaults()
+
 	//Random Node name
 	rand.Seed(time.Now().UnixNano())
 	id := "Node-" + strconv.Itoa(rand.Intn(1000))
-	app := node.Application{
-		//Port:       config.Node.Listen,
-		ID:         id,
-		ServerPort: config.Server.Source,
-		Person: &person.DataFromFile{
-			ID:   id,
-			Path: config.Node.Path},
+
+	handler := &person.DataFromMem{}
+	if *storage == "memory" {
+		handler = &person.DataFromMem{
+			ID: id,
+		}
 	}
 
+	app := node.Application{
+		ID:         id,
+		ServerPort: config.Server.Source,
+		Person:     handler,
+	}
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM, syscall.SIGSTOP, syscall.SIGKILL)
+
+	//TODO: Errors turetu ateiti iki cia.
 	app.Init()
 
 	app.Start()
 
-	//app.Stop()
-
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt, syscall.SIGTERM, syscall.SIGKILL)
-
 	<-stop
 
-	/*
-		var conn *grpc.ClientConn
-		var wg *sync.WaitGroup
-
-		//Flag
-		id := flag.String("ID", "Node-001", "Node ID that is being sent to server")
-		flag.Parse()
-		//Connection to server
-		conn, err := grpc.Dial(":7777", grpc.WithInsecure())
-		if err != nil {
-			log.Fatalf("did not connect: %s", err)
-		}
-		defer conn.Close()
-
-		c := api.NewGreetingClient(conn)
-		p := api.NewPingClient(conn)
-
-		response, err := c.SayHello(context.Background(), &api.Handshake{Id: *id, Port: "7778"})
-		if err != nil {
-			log.Fatalf("Error when calling SayHello: %s", err)
-		}
-		log.Printf("Timeout in: %d seconds", response.Timeout)
-
-		wg = &sync.WaitGroup{}
-		wg.Add(1)
-		go func() {
-			ticker := time.NewTicker(time.Duration(response.Timeout) / 2 * time.Second)
-			for {
-				select {
-				case <-ticker.C:
-					log.Printf("Pinging")
-					_, err := p.PingMe(context.Background(), &api.PingMessage{Id: *id})
-					if err != nil {
-						log.Fatalf("Error when calling PingMe: %s", err)
-					}
-					//log.Printf("Response from server: %d", response)
-					//wg.Done()
-				}
-			}
-		}()
-
-		//SERVER PART
-		lis, err := net.Listen("tcp", fmt.Sprintf(":%d", 7778))
-		if err != nil {
-			log.Fatalf("failed to listen: %v", err)
-		}
-
-		// create a server instance
-		s := handler.Server{}
-
-		// create a gRPC server object
-		grpcServer := grpc.NewServer()
-
-		// attach the Ping service to the server
-		api.RegisterLookForDataServer(grpcServer, &s)
-
-		// start the server
-		if err := grpcServer.Serve(lis); err != nil {
-			log.Fatalf("failed to serve: %s", err)
-		}
-
-		//TODO STOP isideti
-		//Stop isideti
-
-		wg.Wait()*/
+	app.Stop()
 }

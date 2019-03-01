@@ -66,9 +66,6 @@ func (g *GRPCBroker) Init() error {
 	g.wg = &sync.WaitGroup{}
 	g.ctx, g.cancel = context.WithCancel(context.Background())
 
-	//g.GrpcServer = grpc.NewServer()
-
-	//api.RegisterNodeServer(g.GrpcServer, g)
 	return nil
 }
 
@@ -77,8 +74,8 @@ func (g *GRPCBroker) Init() error {
 func (g *GRPCBroker) Start(timeout int) {
 	fmt.Println("Starting TimeOut service")
 
+	g.wg.Add(1)
 	go func() {
-		g.wg.Add(1)
 		ticker := time.NewTicker(time.Duration(timeout) * time.Second)
 		for {
 			select {
@@ -99,8 +96,11 @@ func (g *GRPCBroker) Start(timeout int) {
 	}()
 }
 
-//Stop function stops Go Routine
+//Stop function stops Go Routine, closes connections with Nodes
 func (g *GRPCBroker) Stop() error {
+	for _, v := range g.Nodes {
+		v.Connection.Close()
+	}
 	g.cancel()
 	g.wg.Wait()
 
@@ -274,7 +274,7 @@ func (g *GRPCBroker) GetMultiPersonNode(ctx context.Context, in *api.MultiPerson
 	)
 
 	for k, v := range g.Nodes {
-		if k == in.Persons[1].Node {
+		if k == in.Persons[0].Node {
 			a := api.NewServerClient(v.Connection)
 			response, err = a.GetMultiPerson(context.Background(), in)
 			return response, err
@@ -289,14 +289,19 @@ func (g *GRPCBroker) DropOnePersonBroadcast(ctx context.Context, in *api.Person)
 	var (
 		response *api.Empty
 		err      error
+		success  bool
 	)
 
 	for _, v := range g.Nodes {
 		a := api.NewServerClient(v.Connection)
 		response, err = a.DropOnePerson(context.Background(), &api.Person{Name: in.Name})
-		if err != nil {
-			//log.Fatalf("Error when trying to get response from server: %s", err)
+		if err == nil {
+			success = true
 		}
+	}
+	if success {
+
+		return &api.Empty{Response: "Successfully dropped"}, nil
 	}
 
 	return response, err
@@ -312,32 +317,41 @@ func (g *GRPCBroker) DropOnePersonNode(ctx context.Context, in *api.Person) (*ap
 		if k == in.Node {
 			a := api.NewServerClient(v.Connection)
 			response, err = a.DropOnePerson(context.Background(), &api.Person{Name: in.Name})
-			if err != nil {
-				//log.Fatalf("Error when trying to get response from server: %s", err)
-			}
+
+			return response, err
 		}
 	}
+
+	err = errors.New("Given Node is not connected to the server")
 
 	return response, err
 }
 
+//DropMultiPersonBroadcast deletes multiple persons going through all nodes connected.
 func (g *GRPCBroker) DropMultiPersonBroadcast(ctx context.Context, in *api.MultiPerson) (*api.Empty, error) {
 	var (
 		response *api.Empty
 		err      error
+		success  bool
 	)
 
 	for _, v := range g.Nodes {
 		a := api.NewServerClient(v.Connection)
 		response, err = a.DropMultiPerson(context.Background(), in)
-		if err != nil {
-			//log.Fatalf("Error when trying to get response from server: %s", err)
+		if err == nil {
+			success = true
 		}
+	}
+	if success {
+
+		return &api.Empty{Response: "Successfully dropped"}, nil
 	}
 
 	return response, err
+
 }
 
+//DropMultiPersonNode deleted person from specified Node
 func (g *GRPCBroker) DropMultiPersonNode(ctx context.Context, in *api.MultiPerson) (*api.Empty, error) {
 	var (
 		response *api.Empty
@@ -345,18 +359,19 @@ func (g *GRPCBroker) DropMultiPersonNode(ctx context.Context, in *api.MultiPerso
 	)
 
 	for k, v := range g.Nodes {
-		if k == in.Persons[1].Node {
+		if k == in.Persons[0].Node {
 			a := api.NewServerClient(v.Connection)
 			response, err = a.DropMultiPerson(context.Background(), in)
-			if err != nil {
-				//log.Fatalf("Error when trying to get response from server: %s", err)
-			}
+
+			return response, err
 		}
 	}
+	err = errors.New("Given Node is not connected to the server")
 
-	return response, err
+	return &api.Empty{}, err
 }
 
+//InsertOnePersonNode adds given Person to a specified Node
 func (g *GRPCBroker) InsertOnePersonNode(ctx context.Context, in *api.Person) (*api.Empty, error) {
 	var (
 		response *api.Empty
@@ -367,15 +382,16 @@ func (g *GRPCBroker) InsertOnePersonNode(ctx context.Context, in *api.Person) (*
 		if k == in.Node {
 			a := api.NewServerClient(v.Connection)
 			response, err = a.InsertOnePerson(context.Background(), in)
-			if err != nil {
-				//log.Fatalf("Error when trying to get response from server: %s", err)
-			}
+
+			return response, err
 		}
 	}
+	err = errors.New("Given Node is not connected to the server")
 
 	return response, err
 }
 
+//InsertMultiPersonNode adds given multiple persons to a specified Node
 func (g *GRPCBroker) InsertMultiPersonNode(ctx context.Context, in *api.MultiPerson) (*api.Empty, error) {
 	var (
 		response *api.Empty
@@ -383,14 +399,14 @@ func (g *GRPCBroker) InsertMultiPersonNode(ctx context.Context, in *api.MultiPer
 	)
 
 	for k, v := range g.Nodes {
-		if k == in.Persons[1].Node {
+		if k == in.Persons[0].Node {
 			a := api.NewServerClient(v.Connection)
 			response, err = a.InsertMultiPerson(context.Background(), in)
-			if err != nil {
-				//log.Fatalf("Error when trying to get response from server: %s", err)
-			}
+
+			return response, err
 		}
 	}
+	err = errors.New("Given Node is not connected to the server")
 
 	return response, err
 }

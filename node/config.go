@@ -2,10 +2,10 @@ package node
 
 import "github.com/BurntSushi/toml"
 
+//Config is a structure for a configuration file
 type Config struct {
 	Node struct {
-		ID string
-		//	Listen string
+		ID   string
 		Path string
 	}
 	Server struct {
@@ -13,20 +13,21 @@ type Config struct {
 	}
 }
 
+//ReadConfig function reads through and decodes the given file.
+//Returns data in Config structure
 func ReadConfig(path string) (c Config, err error) {
 	_, err = toml.DecodeFile(path, &c)
 	return c, err
 }
 
+//ApplyDefaults function check to see if we have all neccessary info from config file
+//Assigns default values if these is some valuable information missing
 func (c *Config) ApplyDefaults() {
 
 	if c.Node.ID == "" {
-		c.Node.ID = "Node-0001"
+		c.Node.ID = "Node-"
 	}
 
-	/*if c.Node.Listen == "" {
-		c.Node.Listen = "0.0.0.0:8887"
-	}*/
 	if c.Node.Path == "" {
 		c.Node.Path = "data.json"
 	}
