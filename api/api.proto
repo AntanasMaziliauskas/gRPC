@@ -5,13 +5,10 @@ package api;
 message NodeInfo {
   string id = 1;
   string source = 2;
+  bool isonline = 3;
 }
 message NodesList {
   repeated NodeInfo Nodes = 1;
-}
-//Timeout is the time interval for checking the connection with the Node
-message Timeout {
-    int64 Timeout = 1;
 }
 //PingMessage is for checking the connection between the Node and the server
 message PingMessage {
@@ -21,12 +18,12 @@ message PingMessage {
 message Empty {
   string response =1;
 }
-
 message Person {
-    string name =1;
-    int64 age =2;
-    string profession = 3;
-    string node =4;
+    string id = 1;
+    string name =2;
+    int64 age =3;
+    string profession = 4;
+    string node =5;
 }
 
 message MultiPerson {
@@ -52,7 +49,8 @@ service Control {
 }
 
 service Server {
-  rpc ListPersons (Empty) returns (MultiPerson) {}
+  rpc Ping(PingMessage) returns (Empty) {}
+  rpc ListPersons(Empty) returns (MultiPerson) {}
   rpc GetOnePerson(Person) returns (Person) {}
   rpc GetMultiPerson(MultiPerson) returns (MultiPerson) {}
   rpc DropOnePerson(Person) returns (Empty) {}
@@ -62,6 +60,5 @@ service Server {
 }
 
 service Node {
-  rpc Ping(PingMessage) returns (Empty) {}
-  rpc AddNode(NodeInfo) returns (Timeout) {}
+  rpc AddNode(NodeInfo) returns (Empty) {}
 }

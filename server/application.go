@@ -47,6 +47,8 @@ func (a *Application) Start() {
 //Stop function stops gRPC server, Broker services.
 func (a *Application) Stop() {
 	a.grpcServer.Stop()
+	//fmt.Println("GRPC Server stopped")
 	a.Broker.Stop()
+	//fmt.Println("Broker Go Routine stopped")
 	a.wg.Wait()
 }

@@ -6,7 +6,6 @@ import (
 	"log"
 	"net"
 	"sync"
-	"time"
 
 	"github.com/AntanasMaziliauskas/grpc/api"
 	"github.com/AntanasMaziliauskas/grpc/node/person"
@@ -53,7 +52,7 @@ func (a *Application) Start() {
 
 	a.ConnectWithServer()
 
-	a.PingServer()
+	//	a.PingServer()
 
 	a.StartgRPCServer()
 
@@ -82,8 +81,8 @@ func (a *Application) ConnectWithServer() {
 	if err != nil {
 		log.Fatalf("Error when calling AddNode: %s", err)
 	}
-	log.Printf("Timeout in: %d seconds", response.Timeout)
-	a.Timeout = response.Timeout
+	log.Printf("Connected %s", response)
+	//	a.Timeout = response.Timeout
 }
 
 //SetgRPCServer generates random Port, sets listener, creates gRPC server object
@@ -120,6 +119,7 @@ func (a *Application) StartgRPCServer() {
 	}()
 }
 
+/*
 //PingServer launches go routine to start pingin server
 func (a *Application) PingServer() {
 	p := api.NewNodeClient(a.conn)
@@ -144,4 +144,4 @@ func (a *Application) PingServer() {
 			}
 		}
 	}()
-}
+}*/

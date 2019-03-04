@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/AntanasMaziliauskas/grpc/api"
+	"github.com/globalsign/mgo/bson"
 	"github.com/urfave/cli"
 	"google.golang.org/grpc"
 )
@@ -17,6 +18,7 @@ type Application struct {
 }
 
 type Person struct {
+	ID         bson.ObjectId `bson:"_id,omitempty"`
 	Name       string
 	Age        int64
 	Profession string
@@ -44,7 +46,12 @@ func (a *Application) ListPersonsBroadcast(c *cli.Context) error {
 		log.Fatalf("Error when calling ListPersonsBroadcast: %s", err)
 	}
 
-	log.Println("Response: ", response)
+	log.Printf("Response: \n")
+	for _, v := range response.Persons {
+		log.Println(v)
+		log.Println(v.Id)
+	}
+	//log.Println("Response: ", response)
 
 	return nil
 }
@@ -56,6 +63,9 @@ func (a *Application) ListPersonsNode(c *cli.Context) error {
 		log.Fatalf("Error when calling GetOnePersonBroadcast: %s", err)
 	}
 	log.Println("Response: ", response)
+	for _, v := range response.Persons {
+		log.Println(v.Name)
+	}
 
 	return nil
 }

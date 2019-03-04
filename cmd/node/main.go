@@ -16,12 +16,13 @@ import (
 
 func main() {
 	var (
-		config node.Config
-		err    error
+		config  node.Config
+		err     error
+		handler person.PersonService
 	)
 
 	conf := flag.String("config", "config.toml", "Config file to be used")
-	storage := flag.String("storage", "memory", "Storage to be used. Can only be 'memory' for now")
+	storage := flag.String("storage", "memory", "Storage to be used. Can be 'memory' or 'mongo'")
 	flag.Parse()
 
 	if config, err = node.ReadConfig(*conf); err != nil {
@@ -33,10 +34,11 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 	id := "Node-" + strconv.Itoa(rand.Intn(1000))
 
-	handler := &person.DataFromMem{}
-	if *storage == "memory" {
-		handler = &person.DataFromMem{
-			ID: id,
+	handler = &person.DataFromMem{}
+
+	if *storage == "mongo" {
+		handler = &person.DataFromMgo{
+			//	ID: id,
 		}
 	}
 

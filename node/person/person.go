@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/AntanasMaziliauskas/grpc/api"
+	"github.com/globalsign/mgo/bson"
 )
 
 type PersonService interface {
@@ -16,12 +17,14 @@ type PersonService interface {
 	DropMultiPerson(context.Context, *api.MultiPerson) (*api.Empty, error)
 	InsertOnePerson(context.Context, *api.Person) (*api.Empty, error)
 	InsertMultiPerson(context.Context, *api.MultiPerson) (*api.Empty, error)
+	Ping(context.Context, *api.PingMessage) (*api.Empty, error)
 }
 
 type Person struct {
-	Name       string
-	Age        int64
-	Profession string
+	ID         bson.ObjectId `bson:"_id,omitempty"`
+	Name       string        `bson:"name"`
+	Age        int64         `bson:"age"`
+	Profession string        `bson:"profession"`
 }
 
 // SliceContainsString will return true if needle has been found in haystack.

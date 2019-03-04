@@ -158,3 +158,18 @@ func (d *DataFromMem) InsertMultiPerson(ctx context.Context, in *api.MultiPerson
 	message := duplicate + " are already inserted."
 	return &api.Empty{Response: message}, nil
 }
+
+//ReceivedPing function updates LastSeen for the Node that pinged the server
+func (d *DataFromMem) Ping(ctx context.Context, in *api.PingMessage) (*api.Empty, error) {
+	//fmt.Println("I Got Pinged From ", in.Id)
+
+	//TODO: Ka darome, jeigu Node yra dropintas ir visvien pingina?
+	/*for k := range g.Nodes {
+		if k == in.Id {
+			fmt.Println("I Got Pinged From ", in.Id)
+			g.Nodes[in.Id].LastSeen = time.Now()
+		}
+	}*/
+
+	return &api.Empty{}, nil
+}
