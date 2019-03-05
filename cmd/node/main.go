@@ -38,7 +38,7 @@ func main() {
 
 	if *storage == "mongo" {
 		handler = &person.DataFromMgo{
-			//	ID: id,
+			ID: id,
 		}
 	}
 

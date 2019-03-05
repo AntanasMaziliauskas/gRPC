@@ -49,22 +49,23 @@ func (a *Application) ListPersonsBroadcast(c *cli.Context) error {
 	log.Printf("Response: \n")
 	for _, v := range response.Persons {
 		log.Println(v)
-		log.Println(v.Id)
 	}
-	//log.Println("Response: ", response)
 
 	return nil
 }
 
 //ListPersonsNode return list of persons from specified Node
 func (a *Application) ListPersonsNode(c *cli.Context) error {
+	if c.GlobalString("node") == "" {
+		log.Fatalf("There is NO NODE provided.")
+	}
 	response, err := a.client.ListPersonsNode(context.Background(), &api.NodeInfo{Id: c.GlobalString("node")})
 	if err != nil {
 		log.Fatalf("Error when calling GetOnePersonBroadcast: %s", err)
 	}
-	log.Println("Response: ", response)
+	log.Println("Response:")
 	for _, v := range response.Persons {
-		log.Println(v.Name)
+		log.Println(v)
 	}
 
 	return nil
@@ -73,17 +74,24 @@ func (a *Application) ListPersonsNode(c *cli.Context) error {
 //GetOnePersonBroadcast return information about the preson
 //Looks through every Node that's connected to the server
 func (a *Application) GetOnePersonBroadcast(c *cli.Context) error {
-	response, err := a.client.GetOnePersonBroadcast(context.Background(), &api.Person{Name: c.GlobalString("person")})
+	if c.GlobalString("person") == "" {
+		log.Fatalf("There is NO PERSON provided.")
+	}
+	response, err := a.client.GetOnePersonBroadcast(context.Background(), &api.Person{Id: c.GlobalString("person")})
 	if err != nil {
 		log.Fatalf("Error when calling GetOnePersonBroadcast: %s", err)
 	}
-	log.Println("Response: ", response)
+	log.Println("Response:")
+	log.Println(response)
 
 	return nil
 }
 
 //DropNode deletes Node from the server
 func (a *Application) DropNode(c *cli.Context) error {
+	if c.GlobalString("node") == "" {
+		log.Fatalf("There is NO NODE provided.")
+	}
 	response, err := a.client.DropNode(context.Background(), &api.NodeInfo{Id: c.GlobalString("node")})
 	if err != nil {
 		log.Fatalf("Error when calling DropNode: %s", err)
@@ -99,18 +107,28 @@ func (a *Application) ListNodes(c *cli.Context) error {
 	if err != nil {
 		log.Fatalf("Error when calling ListNodes: %s", err)
 	}
-	log.Println("Response: ", response)
+	log.Println("Response:")
+	for _, v := range response.Nodes {
+		if v.Isonline {
+			log.Println(v.Id, " - ONLINE")
+		} else {
+			log.Println(v.Id, " - OFFLINE")
+		}
 
+	}
 	return nil
 }
 
 //GetOnePersonNode return information about the person from specified Node
 func (a *Application) GetOnePersonNode(c *cli.Context) error {
-	response, err := a.client.GetOnePersonNode(context.Background(), &api.Person{Name: c.GlobalString("person"), Node: c.GlobalString("node")})
+	if c.GlobalString("node") == "" {
+		log.Fatalf("There is NO NODE provided.")
+	}
+	response, err := a.client.GetOnePersonNode(context.Background(), &api.Person{Id: c.GlobalString("person"), Node: c.GlobalString("node")})
 	if err != nil {
 		log.Fatalf("Error when calling GetOnePersonNode: %s", err)
 	}
-	log.Println("Response: ", response)
+	log.Println("Response: \n", response)
 
 	return nil
 }
@@ -122,13 +140,16 @@ func (a *Application) GetMultiPersonBroadcast(c *cli.Context) error {
 	personList := a.parsePersons(c.GlobalString("person"))
 
 	for _, v := range personList {
-		multiPerson.Persons = append(multiPerson.Persons, &api.Person{Name: v})
+		multiPerson.Persons = append(multiPerson.Persons, &api.Person{Id: v})
 	}
 	response, err := a.client.GetMultiPersonBroadcast(context.Background(), multiPerson)
 	if err != nil {
 		log.Fatalf("Error when calling GetMultiPersonBroadcast: %s", err)
 	}
-	log.Println("Response: ", response)
+	log.Println("Response:")
+	for _, v := range response.Persons {
+		log.Println(v)
+	}
 
 	return nil
 }
@@ -137,22 +158,28 @@ func (a *Application) GetMultiPersonBroadcast(c *cli.Context) error {
 func (a *Application) GetMultiPersonNode(c *cli.Context) error {
 	multiPerson := &api.MultiPerson{}
 	personList := a.parsePersons(c.GlobalString("person"))
+	if c.GlobalString("node") == "" {
+		log.Fatalf("There is NO NODE provided.")
+	}
 
 	for _, v := range personList {
-		multiPerson.Persons = append(multiPerson.Persons, &api.Person{Name: v, Node: c.GlobalString("node")})
+		multiPerson.Persons = append(multiPerson.Persons, &api.Person{Id: v, Node: c.GlobalString("node")})
 	}
 	response, err := a.client.GetMultiPersonNode(context.Background(), multiPerson)
 	if err != nil {
 		log.Fatalf("Error when calling GetMultiPersonNode: %s", err)
 	}
-	log.Println("Response: ", response)
+	log.Println("Response:")
+	for _, v := range response.Persons {
+		log.Println(v)
+	}
 
 	return nil
 }
 
 //DropOnePersonBroadcast deletes person from any Node that is connected to the server
 func (a *Application) DropOnePersonBroadcast(c *cli.Context) error {
-	response, err := a.client.DropOnePersonBroadcast(context.Background(), &api.Person{Name: c.GlobalString("person")})
+	response, err := a.client.DropOnePersonBroadcast(context.Background(), &api.Person{Id: c.GlobalString("person")})
 	if err != nil {
 		log.Fatalf("Error when calling DropOnePersonBroadcast: %s", err)
 	}
@@ -163,7 +190,10 @@ func (a *Application) DropOnePersonBroadcast(c *cli.Context) error {
 
 //DropOnePersonNode deletes person from specified Node
 func (a *Application) DropOnePersonNode(c *cli.Context) error {
-	response, err := a.client.DropOnePersonNode(context.Background(), &api.Person{Name: c.GlobalString("person"), Node: c.GlobalString("node")})
+	if c.GlobalString("node") == "" {
+		log.Fatalf("There is NO NODE provided.")
+	}
+	response, err := a.client.DropOnePersonNode(context.Background(), &api.Person{Id: c.GlobalString("person"), Node: c.GlobalString("node")})
 	if err != nil {
 		log.Fatalf("Error when calling DropOnePersonNode: %s", err)
 	}
@@ -178,7 +208,7 @@ func (a *Application) DropMultiPersonBroadcast(c *cli.Context) error {
 
 	personList := a.parsePersons(c.GlobalString("person"))
 	for _, v := range personList {
-		multiPerson.Persons = append(multiPerson.Persons, &api.Person{Name: v})
+		multiPerson.Persons = append(multiPerson.Persons, &api.Person{Id: v})
 	}
 	response, err := a.client.DropMultiPersonBroadcast(context.Background(), multiPerson)
 	if err != nil {
@@ -192,10 +222,12 @@ func (a *Application) DropMultiPersonBroadcast(c *cli.Context) error {
 //DropMultiPersonNode deleted multiple persons from specified Node
 func (a *Application) DropMultiPersonNode(c *cli.Context) error {
 	multiPerson := &api.MultiPerson{}
-
+	if c.GlobalString("node") == "" {
+		log.Fatalf("There is NO NODE provided.")
+	}
 	personList := a.parsePersons(c.GlobalString("person"))
 	for _, v := range personList {
-		multiPerson.Persons = append(multiPerson.Persons, &api.Person{Name: v, Node: c.GlobalString("node")})
+		multiPerson.Persons = append(multiPerson.Persons, &api.Person{Id: v, Node: c.GlobalString("node")})
 	}
 	response, err := a.client.DropMultiPersonNode(context.Background(), multiPerson)
 	if err != nil {
@@ -208,6 +240,9 @@ func (a *Application) DropMultiPersonNode(c *cli.Context) error {
 
 //InsertOnePersonNode adds given person to specified Node
 func (a *Application) InsertOnePersonNode(c *cli.Context) error {
+	if c.GlobalString("node") == "" {
+		log.Fatalf("There is NO NODE provided.")
+	}
 	personList := a.parsePerson(c.GlobalString("person"))
 	response, err := a.client.InsertOnePersonNode(context.Background(), &api.Person{Name: personList[0].Name, Age: personList[0].Age, Profession: personList[0].Profession, Node: c.GlobalString("node")})
 	if err != nil {
@@ -221,7 +256,9 @@ func (a *Application) InsertOnePersonNode(c *cli.Context) error {
 //InsertMultiPersonNode adds multiple persons to specified Node
 func (a *Application) InsertMultiPersonNode(c *cli.Context) error {
 	multiPerson := &api.MultiPerson{}
-
+	if c.GlobalString("node") == "" {
+		log.Fatalf("There is NO NODE provided.")
+	}
 	personList := a.parsePerson(c.GlobalString("person"))
 	for _, v := range personList {
 		multiPerson.Persons = append(multiPerson.Persons, &api.Person{Name: v.Name, Age: v.Age, Profession: v.Profession, Node: c.GlobalString("node")})
@@ -237,27 +274,33 @@ func (a *Application) InsertMultiPersonNode(c *cli.Context) error {
 
 //MoveOnePerson function moves specified person to specific Node
 func (a *Application) MoveOnePerson(c *cli.Context) error {
-	response, err := a.client.GetOnePersonBroadcast(context.Background(), &api.Person{Name: c.GlobalString("person")})
+	if c.GlobalString("node") == "" {
+		log.Fatalf("There is NO NODE provided.")
+	}
+	response, err := a.client.GetOnePersonBroadcast(context.Background(), &api.Person{Id: c.GlobalString("person")})
 	if err != nil {
 		log.Fatalf("Error when calling MoveOnePerson: %s", err)
 	}
 	if response.Node != c.GlobalString("node") {
-		a.client.InsertOnePersonNode(context.Background(), &api.Person{
+		_, err = a.client.InsertOnePersonNode(context.Background(), &api.Person{
 			Name:       response.Name,
 			Age:        response.Age,
 			Profession: response.Profession,
 			Node:       c.GlobalString("node")})
 		if err != nil {
-			log.Fatalf("Error when calling MoveOnePerson: %s", err)
+			log.Fatalf("Error when trying to insert person into Node: %s", err)
 		}
-		a.client.DropOnePersonNode(context.Background(), response)
+		_, err = a.client.DropOnePersonNode(context.Background(), response)
 		if err != nil {
 			log.Fatalf("Error when calling DropOnePersonNode: %s", err)
 		}
 	} else {
 		fmt.Println("Person already belongs to given Node.")
+
+		return nil
 	}
 
+	fmt.Println("Person successfully moved.")
 	return nil
 }
 

@@ -126,12 +126,12 @@ func main() {
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "node",
-			Value: "Node-000",
+			Value: "",
 			Usage: "Name of the Node",
 		},
 		cli.StringFlag{
 			Name:  "person",
-			Value: "Jonas",
+			Value: "",
 			Usage: "One or a list of names. For a list use ','. If you are inserting person use '.' to specify age and profession",
 		},
 	}

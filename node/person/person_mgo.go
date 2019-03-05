@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"log"
 	"net"
 
 	"github.com/AntanasMaziliauskas/grpc/api"
@@ -13,6 +14,7 @@ import (
 )
 
 type DataFromMgo struct {
+	//	Persons map[bson.ObjectId]Person
 	Data []Person
 	ID   string
 	Mgo  *mgo.Collection
@@ -20,7 +22,7 @@ type DataFromMgo struct {
 
 //Init function does nothing
 func (d *DataFromMgo) Init() error {
-
+	//	d.Persons = make(map[bson.ObjectId]Person)
 	//Connect to database and set session
 	d.connectToDB() // error isideti
 
@@ -29,35 +31,45 @@ func (d *DataFromMgo) Init() error {
 
 //ListPersons function returns a list of all persons
 func (d *DataFromMgo) ListPersons(ctx context.Context, in *api.Empty) (*api.MultiPerson, error) {
+	var err error
+
+	log.Println("Looking for data...")
+
 	listOfData := &api.MultiPerson{}
-	list := &[]Person
-
-	//TODO: Prideti Node ID i sarasa
-	err := d.Mgo.Find(bson.M{}).All(&listOfData.Persons)
-
-	for _, v := range listOfData.Persons {
-		fmt.Println(v.Id.Hex())
+	list := &[]Person{}
+	if err = d.Mgo.Find(bson.M{}).All(list); err != nil {
+		log.Println("Error while trying to find data: ", err)
 	}
 
-	/*if len(listOfData.Persons) < 1 {
-		err := errors.New("There are no persons in this Node")
+	for _, v := range *list {
+		listOfData.Persons = append(listOfData.Persons, &api.Person{Id: v.ID.Hex(),
+			Name: v.Name, Age: v.Age, Profession: v.Profession, Node: d.ID})
+	}
 
-		return listOfData, err
-	}*/
+	if len(listOfData.Persons) < 1 {
+		log.Println("This Node has no data.")
+	}
 
-	return listOfData, err
+	return listOfData, nil
 }
 
 //GetOnePerson function looks for person and returns it if found
 func (d *DataFromMgo) GetOnePerson(ctx context.Context, in *api.Person) (*api.Person, error) {
 	result := &Person{}
 
-	err := d.Mgo.Find(bson.M{"name": in.Name}).One(&result)
-	if err != nil {
-		fmt.Println("Neranda", err)
+	if !bson.IsObjectIdHex(in.Id) {
+		log.Println("Provided ID is invalid")
+
+		return &api.Person{}, nil
+	}
+	if err := d.Mgo.Find(bson.M{"_id": bson.ObjectIdHex(in.Id)}).One(&result); err != nil {
+		log.Println("Unable to locate given person")
+
+		return &api.Person{}, nil
 	}
 
-	return &api.Person{Name: result.Name, Age: result.Age, Profession: result.Profession, Node: d.ID}, err
+	return &api.Person{Id: result.ID.Hex(), Name: result.Name, Age: result.Age, Profession: result.Profession, Node: d.ID}, nil
+
 }
 
 //GetMultiPerson function looks for multiple persons and returns if found
@@ -66,32 +78,40 @@ func (d *DataFromMgo) GetMultiPerson(ctx context.Context, in *api.MultiPerson) (
 
 	for _, k := range in.Persons {
 		result := &Person{}
-		err := d.Mgo.Find(bson.M{"name": k.Name}).One(&result)
-		if err != nil {
-			fmt.Println("Neranda", err)
-		}
-		listOfData.Persons = append(listOfData.Persons, &api.Person{Name: result.Name, Age: result.Age, Profession: result.Profession, Node: d.ID})
-	}
-	if len(listOfData.Persons) < 1 {
-		err := errors.New("Unable to locate given persons")
+		if !bson.IsObjectIdHex(k.Id) {
+			log.Println("Provided ID is invalid")
 
-		return listOfData, err
+			continue
+		}
+		err := d.Mgo.Find(bson.M{"_id": bson.ObjectIdHex(k.Id)}).One(&result)
+		if err != nil {
+			fmt.Println("Unable to locate person. Error: ", err)
+
+			continue
+		}
+		listOfData.Persons = append(listOfData.Persons, &api.Person{Id: result.ID.Hex(), Name: result.Name, Age: result.Age, Profession: result.Profession, Node: d.ID})
 	}
+
 	return listOfData, nil
 }
 
 //DropOnePerson removes given person from the slice
 func (d *DataFromMgo) DropOnePerson(ctx context.Context, in *api.Person) (*api.Empty, error) {
-	//newData := []Person{}
-	//fmt.Println(d.Data)
+	var err error
 
-	err := d.Mgo.Remove(bson.M{"name": in.Name})
-	if err != nil {
+	if !bson.IsObjectIdHex(in.Id) {
+		fmt.Println("Provided ID is invalid")
 
-		return &api.Empty{}, err
+		return &api.Empty{}, nil
 	}
+	err = d.Mgo.Remove(bson.M{"_id": bson.ObjectIdHex(in.Id)})
+	if err != nil {
+		fmt.Println("Unable to locate person. Error: ", err)
 
-	return &api.Empty{Response: "Person successfully dropped"}, err
+		return &api.Empty{}, nil
+	}
+	fmt.Println("Person successfully dropped")
+	return &api.Empty{}, nil
 }
 
 //DropMultiPerson removes given persons from the slice
@@ -100,20 +120,26 @@ func (d *DataFromMgo) DropMultiPerson(ctx context.Context, in *api.MultiPerson) 
 
 	fmt.Println(d.Data)
 	for _, k := range in.Persons {
-		err := d.Mgo.Remove(bson.M{"name": k.Name})
-		if err == nil {
-			success = true
+		if !bson.IsObjectIdHex(k.Id) {
+			fmt.Println("Provided ID is invalid")
+
+			continue
 		}
+		if err := d.Mgo.Remove(bson.M{"_id": bson.ObjectIdHex(k.Id)}); err != nil {
+			fmt.Println("Error wile trying to remove ", k.Id, " . Error: ", err)
+
+			continue
+		}
+		success = true
 	}
 	if success {
 		fmt.Println(d.Data)
+		fmt.Println("Persons successfully dropped")
 
-		return &api.Empty{Response: "Persons successfully dropped"}, nil
+		return &api.Empty{}, nil
 	}
-	fmt.Println(d.Data)
-	err := errors.New("Unable to locate given person")
 
-	return &api.Empty{}, err
+	return &api.Empty{}, nil
 }
 
 //InsertOnePerson adds person to slice
@@ -163,7 +189,8 @@ func (d *DataFromMgo) InsertMultiPerson(ctx context.Context, in *api.MultiPerson
 		}
 		if !dup {
 			inserted = append(inserted, v.Name)
-			if err := d.Mgo.Insert(&Person{Name: v.Name, Age: v.Age, Profession: v.Profession}); err != nil {
+			//BUS OKAY SU KLAIDA> GRAZINAME
+			if err := d.Mgo.Insert(&Person{ID: bson.NewObjectId(), Name: v.Name, Age: v.Age, Profession: v.Profession}); err != nil {
 				return &api.Empty{}, err
 			}
 		}
@@ -178,6 +205,7 @@ func (d *DataFromMgo) InsertMultiPerson(ctx context.Context, in *api.MultiPerson
 	return &api.Empty{Response: message}, nil
 }
 
+//connectTODB function connects to Mongo dabase.
 func (d *DataFromMgo) connectToDB() error {
 
 	tlsConfig := &tls.Config{}
@@ -203,7 +231,7 @@ func (d *DataFromMgo) connectToDB() error {
 	return nil // returininam error
 }
 
-//ReceivedPing function updates LastSeen for the Node that pinged the server
+//Ping function updates LastSeen for the Node that pinged the server
 func (d *DataFromMgo) Ping(ctx context.Context, in *api.PingMessage) (*api.Empty, error) {
 	fmt.Println("I Got Pinged")
 

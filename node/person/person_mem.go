@@ -6,11 +6,13 @@ import (
 	"fmt"
 
 	"github.com/AntanasMaziliauskas/grpc/api"
+	"github.com/globalsign/mgo/bson"
 )
 
 type DataFromMem struct {
-	Data []Person
-	ID   string
+	Persons map[bson.ObjectId]*Person
+	Data    []Person
+	ID      string
 }
 
 //Init function does nothing
