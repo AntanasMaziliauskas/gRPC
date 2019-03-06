@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"sync"
@@ -9,11 +10,13 @@ import (
 	"google.golang.org/grpc"
 )
 
+//Timeout is the time interval between pinging Nodes
 const Timeout = 15
 
 //Source is a server address
 const Source = ":7778"
 
+//Application structure holds values of Broker, gRPCServer, listener and wait group
 type Application struct {
 	Broker     broker.BrokerService
 	grpcServer *grpc.Server
@@ -48,7 +51,9 @@ func (a *Application) Start() {
 func (a *Application) Stop() {
 	a.grpcServer.Stop()
 	//fmt.Println("GRPC Server stopped")
-	a.Broker.Stop()
+	if err := a.Broker.Stop(); err != nil {
+		fmt.Println("Error while stopping Broker services: ", err)
+	}
 	//fmt.Println("Broker Go Routine stopped")
 	a.wg.Wait()
 }

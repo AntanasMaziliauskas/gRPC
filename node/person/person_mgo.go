@@ -3,7 +3,6 @@ package person
 import (
 	"context"
 	"crypto/tls"
-	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -13,18 +12,18 @@ import (
 	"github.com/globalsign/mgo/bson"
 )
 
+//DataFromMgo structure holds values od Data, ID and Mgo
 type DataFromMgo struct {
-	//	Persons map[bson.ObjectId]Person
 	Data []Person
 	ID   string
 	Mgo  *mgo.Collection
 }
 
-//Init function does nothing
+//Init function connects to database and sets session
 func (d *DataFromMgo) Init() error {
-	//	d.Persons = make(map[bson.ObjectId]Person)
-	//Connect to database and set session
-	d.connectToDB() // error isideti
+	if err := d.connectToDB(); err != nil {
+		log.Fatal("Error while connecting to Database: ", err)
+	}
 
 	return nil
 }
@@ -75,21 +74,26 @@ func (d *DataFromMgo) GetOnePerson(ctx context.Context, in *api.Person) (*api.Pe
 //GetMultiPerson function looks for multiple persons and returns if found
 func (d *DataFromMgo) GetMultiPerson(ctx context.Context, in *api.MultiPerson) (*api.MultiPerson, error) {
 	listOfData := &api.MultiPerson{}
+	result := []Person{}
+	var ids []bson.ObjectId
 
-	for _, k := range in.Persons {
-		result := &Person{}
-		if !bson.IsObjectIdHex(k.Id) {
+	for _, v := range in.Persons {
+		if !bson.IsObjectIdHex(v.Id) {
 			log.Println("Provided ID is invalid")
 
 			continue
 		}
-		err := d.Mgo.Find(bson.M{"_id": bson.ObjectIdHex(k.Id)}).One(&result)
-		if err != nil {
-			fmt.Println("Unable to locate person. Error: ", err)
+		ids = append(ids, bson.ObjectIdHex(v.Id))
+	}
 
-			continue
-		}
-		listOfData.Persons = append(listOfData.Persons, &api.Person{Id: result.ID.Hex(), Name: result.Name, Age: result.Age, Profession: result.Profession, Node: d.ID})
+	if err := d.Mgo.Find(bson.M{"_id": bson.M{"$in": ids}}).All(&result); err != nil {
+		fmt.Println("Unable to locate person. Error: ", err)
+
+		return &api.MultiPerson{}, nil
+	}
+
+	for _, k := range result {
+		listOfData.Persons = append(listOfData.Persons, &api.Person{Id: k.ID.Hex(), Name: k.Name, Age: k.Age, Profession: k.Profession, Node: d.ID})
 	}
 
 	return listOfData, nil
@@ -142,67 +146,63 @@ func (d *DataFromMgo) DropMultiPerson(ctx context.Context, in *api.MultiPerson) 
 	return &api.Empty{}, nil
 }
 
-//InsertOnePerson adds person to slice
-func (d *DataFromMgo) InsertOnePerson(ctx context.Context, in *api.Person) (*api.Empty, error) {
-	listOfData := &api.MultiPerson{}
+//UpsertOnePerson adds person to slice
+func (d *DataFromMgo) UpsertOnePerson(ctx context.Context, in *api.Person) (*api.Empty, error) {
+	var p Person
 
-	err := d.Mgo.Find(bson.M{}).All(&listOfData.Persons)
-	fmt.Println(listOfData)
+	if !bson.IsObjectIdHex(in.Id) {
+		fmt.Println("Provided ID is invalid")
 
-	for _, v := range listOfData.Persons {
-		if v.Name == in.Name {
-			err := errors.New("Given person already exist")
-			fmt.Println(listOfData)
-
-			return &api.Empty{}, err
-		}
+		return &api.Empty{}, nil
 	}
-	if err := d.Mgo.Insert(&Person{ID: bson.NewObjectId(), Name: in.Name, Age: in.Age, Profession: in.Profession}); err != nil {
-		return &api.Empty{}, err
+	p = Person{
+		ID:         bson.ObjectIdHex(in.Id),
+		Name:       in.Name,
+		Age:        in.Age,
+		Profession: in.Profession,
 	}
-	d.Mgo.Find(bson.M{}).All(&listOfData.Persons)
-	fmt.Println(listOfData)
 
-	return &api.Empty{Response: "Person successfully inserted"}, err
+	selector := bson.M{"_id": p.ID}
+	upsertdata := bson.M{"$set": p}
+	if _, err := d.Mgo.Upsert(selector, upsertdata); err != nil {
+		fmt.Println("Error while trying to upsert: ", err)
+
+		return &api.Empty{}, nil
+	}
+	fmt.Println("Person successfully upserted")
+
+	return &api.Empty{}, nil
 }
 
-//InsertMultiPerson adds multiple persons to a slice
-func (d *DataFromMgo) InsertMultiPerson(ctx context.Context, in *api.MultiPerson) (*api.Empty, error) {
-	var duplicate string
-	var inserted []string
-	var dup bool
+//UpsertMultiPerson adds multiple persons to a slice
+func (d *DataFromMgo) UpsertMultiPerson(ctx context.Context, in *api.MultiPerson) (*api.Empty, error) {
+	var p Person
 
-	listOfData := &api.MultiPerson{}
-
-	err := d.Mgo.Find(bson.M{}).All(&listOfData.Persons)
-	if err != nil {
-
-		return &api.Empty{}, err
-	}
-	fmt.Println(listOfData)
 	for _, v := range in.Persons {
-		for _, k := range listOfData.Persons {
-			if v.Name == k.Name {
-				dup = true
-				duplicate = duplicate + v.Name + " "
-			}
-		}
-		if !dup {
-			inserted = append(inserted, v.Name)
-			//BUS OKAY SU KLAIDA> GRAZINAME
-			if err := d.Mgo.Insert(&Person{ID: bson.NewObjectId(), Name: v.Name, Age: v.Age, Profession: v.Profession}); err != nil {
-				return &api.Empty{}, err
-			}
-		}
-	}
-	if len(duplicate) < 1 {
-		fmt.Println(d.Data)
+		if !bson.IsObjectIdHex(v.Id) {
+			fmt.Println("Provided ID is invalid")
 
-		return &api.Empty{Response: "Successfully inserted"}, nil
+			return &api.Empty{}, nil
+		}
+		p = Person{
+			ID:         bson.ObjectIdHex(v.Id),
+			Name:       v.Name,
+			Age:        v.Age,
+			Profession: v.Profession,
+		}
+
+		selector := bson.M{"_id": p.ID}
+		upsertdata := bson.M{"$set": p}
+		if _, err := d.Mgo.Upsert(selector, upsertdata); err != nil {
+			fmt.Println("Error while trying to upsert", v.Id, ": ", err)
+
+			continue
+		}
+		fmt.Println("Person ", v.Name, " successfully upserted")
+
 	}
-	fmt.Println(d.Data)
-	message := duplicate + " are already inserted."
-	return &api.Empty{Response: message}, nil
+
+	return &api.Empty{}, nil
 }
 
 //connectTODB function connects to Mongo dabase.
@@ -234,14 +234,5 @@ func (d *DataFromMgo) connectToDB() error {
 //Ping function updates LastSeen for the Node that pinged the server
 func (d *DataFromMgo) Ping(ctx context.Context, in *api.PingMessage) (*api.Empty, error) {
 	fmt.Println("I Got Pinged")
-
-	//TODO: Ka darome, jeigu Node yra dropintas ir visvien pingina?
-	/*for k := range g.Nodes {
-		if k == in.Id {
-			fmt.Println("I Got Pinged From ", in.Id)
-			g.Nodes[in.Id].LastSeen = time.Now()
-		}
-	}*/
-
 	return &api.Empty{}, nil
 }

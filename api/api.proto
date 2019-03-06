@@ -44,8 +44,8 @@ service Control {
   rpc DropOnePersonNode(Person) returns (Empty) {}
   rpc DropMultiPersonBroadcast(MultiPerson) returns (Empty) {}
   rpc DropMultiPersonNode(MultiPerson) returns (Empty) {}
-  rpc InsertOnePersonNode(Person) returns (Empty) {}
-  rpc InsertMultiPersonNode(MultiPerson) returns (Empty) {}
+  rpc UpsertOnePersonNode(Person) returns (Empty) {}
+  rpc UpsertMultiPersonNode(MultiPerson) returns (Empty) {}
 }
 
 service Server {
@@ -55,8 +55,8 @@ service Server {
   rpc GetMultiPerson(MultiPerson) returns (MultiPerson) {}
   rpc DropOnePerson(Person) returns (Empty) {}
   rpc DropMultiPerson(MultiPerson) returns (Empty) {}
-  rpc InsertOnePerson(Person) returns (Empty) {}
-  rpc InsertMultiPerson(MultiPerson) returns (Empty) {}
+  rpc UpsertOnePerson(Person) returns (Empty) {}
+  rpc UpsertMultiPerson(MultiPerson) returns (Empty) {}
 }
 
 service Node {

@@ -2,7 +2,6 @@ package broker
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"sync"
@@ -12,6 +11,10 @@ import (
 	"google.golang.org/grpc"
 )
 
+//BrokerService holds Init, Start, Stop, AddNode, DropNode, ListNodes, ListPersonsBroadcast
+//ListPersonsNode, GetOnePersonBroadcast, GetOnePersonNode, GetMultiPersonBroadcast,
+//GetMultiPersonNode, DropOnepersonBroadcast, DropOnePersonNode, DropMultiPersonBroadcast,
+//DropMultiPersonNode, UpsertOnePersonNode and UpsertMultiPersonNode functions
 type BrokerService interface {
 	Init() error
 
@@ -22,8 +25,6 @@ type BrokerService interface {
 	AddNode(context.Context, *api.NodeInfo) (*api.Empty, error)
 
 	DropNode(context.Context, *api.NodeInfo) (*api.Empty, error)
-
-	//	Ping(context.Context, *api.PingMessage) (*api.Empty, error)
 
 	ListNodes(context.Context, *api.Empty) (*api.NodesList, error)
 
@@ -42,10 +43,11 @@ type BrokerService interface {
 	DropMultiPersonBroadcast(context.Context, *api.MultiPerson) (*api.Empty, error)
 	DropMultiPersonNode(context.Context, *api.MultiPerson) (*api.Empty, error)
 
-	InsertOnePersonNode(context.Context, *api.Person) (*api.Empty, error)
-	InsertMultiPersonNode(context.Context, *api.MultiPerson) (*api.Empty, error)
+	UpsertOnePersonNode(context.Context, *api.Person) (*api.Empty, error)
+	UpsertMultiPersonNode(context.Context, *api.MultiPerson) (*api.Empty, error)
 }
 
+//GRPCBroker structure holds values of Nodes, ctx, cancel, wg and GrpcServer
 type GRPCBroker struct {
 	Nodes      map[string]*Node
 	ctx        context.Context
@@ -54,10 +56,11 @@ type GRPCBroker struct {
 	GrpcServer *grpc.Server
 }
 
+//Node structure holds values of Port, LastSeen, LastPing, IsOnline and Connection
 type Node struct {
 	Port       string
 	LastSeen   time.Time
-	LastPing   time.Time
+	LastPing   time.Time //TODO: Ar tikrai jos reikia?
 	IsOnline   bool
 	Connection *grpc.ClientConn
 }
@@ -86,13 +89,13 @@ func (g *GRPCBroker) Start(timeout int) {
 				for k, v := range g.Nodes {
 					a := api.NewServerClient(v.Connection)
 					_, err := a.Ping(context.Background(), &api.PingMessage{})
-					if err != nil && v.IsOnline == true {
+					if err != nil && v.IsOnline {
 						v.IsOnline = false
 						fmt.Printf("Node %s went offline\n", k)
-					} /*else if !v.IsOnline {
+					} else if err == nil && !v.IsOnline {
 						g.Nodes[k].IsOnline = true
 						fmt.Printf("Node %s went online\n", k)
-					}*/
+					}
 					g.Nodes[k].LastSeen = time.Now()
 				}
 			case <-g.ctx.Done():
@@ -110,7 +113,9 @@ func (g *GRPCBroker) Start(timeout int) {
 //Stop function stops Go Routine, closes connections with Nodes
 func (g *GRPCBroker) Stop() error {
 	for _, v := range g.Nodes {
-		v.Connection.Close()
+		if err := v.Connection.Close(); err != nil {
+			log.Println("Error while trying to close connection with Node:", err)
+		}
 	}
 	g.cancel()
 	g.wg.Wait()
@@ -119,12 +124,13 @@ func (g *GRPCBroker) Stop() error {
 
 //AddNode function adds connected Node to a list
 func (g *GRPCBroker) AddNode(ctx context.Context, in *api.NodeInfo) (*api.Empty, error) {
-	log.Printf("Received message: %s. Port: %s", in.Id, in.Source)
+	log.Printf("Node %s connected.", in.Id)
+
 	conn, err := grpc.Dial(in.Source, grpc.WithInsecure())
 	if err != nil {
-		log.Fatalf("did not connect: %s", err)
+		fmt.Printf("Unable to connect to %s: %s", in.Id, err)
 	}
-
+	//TODO: Kas vyksta, kai iskarto nepavyksta connection uzmegsti?
 	g.Nodes[in.Id] = &Node{
 		Port:       in.Source,
 		LastSeen:   time.Now(),
@@ -132,36 +138,35 @@ func (g *GRPCBroker) AddNode(ctx context.Context, in *api.NodeInfo) (*api.Empty,
 		Connection: conn,
 	}
 
-	return &api.Empty{}, err
+	return &api.Empty{}, nil
 }
 
 //DropNode deletes Node from the list
 func (g *GRPCBroker) DropNode(ctx context.Context, in *api.NodeInfo) (*api.Empty, error) {
 
-	for k := range g.Nodes {
-		if k == in.Id {
-			delete(g.Nodes, in.Id)
+	if _, ok := g.Nodes[in.Id]; ok {
+		delete(g.Nodes, in.Id)
+		fmt.Printf("Node %s was dropped.", in.Id)
 
-			return &api.Empty{Response: "Node successfully deleted"}, nil
-		}
+		return &api.Empty{}, nil
 	}
-	err := errors.New("Unable to drop Node: " + in.Id + ". It is not connected to the server")
-	return &api.Empty{}, err
+	fmt.Println("Unable to drop Node: " + in.Id + ". It is not in the list.")
+
+	return &api.Empty{}, nil
 }
 
 //ListNodes function return a list of Nodes that are connected to the server
 func (g *GRPCBroker) ListNodes(ctx context.Context, in *api.Empty) (*api.NodesList, error) {
-	var err error
-
 	nodesList := &api.NodesList{}
 
 	for k, v := range g.Nodes {
 		nodesList.Nodes = append(nodesList.Nodes, &api.NodeInfo{Id: k, Source: v.Port, Isonline: v.IsOnline})
 	}
 	if len(nodesList.Nodes) < 1 {
-		err = errors.New("There are no nodes connected to the server")
+		fmt.Println("There are no nodes connected to the server")
 	}
-	return nodesList, err
+
+	return nodesList, nil
 }
 
 //ListPersonsBroadcast gets a list of all the persons in every connected Node and return information about him
@@ -176,12 +181,14 @@ func (g *GRPCBroker) ListPersonsBroadcast(ctx context.Context, in *api.Empty) (*
 
 	for k, v := range g.Nodes {
 		if !v.IsOnline {
+
 			continue
 		}
 		a := api.NewServerClient(v.Connection)
 		if response, err = a.ListPersons(context.Background(), &api.Empty{}); err != nil {
 			g.Nodes[k].IsOnline = false
 			log.Println("Error while trying to call ListPersons: ", err)
+
 			continue
 		}
 		con = true
@@ -191,6 +198,7 @@ func (g *GRPCBroker) ListPersonsBroadcast(ctx context.Context, in *api.Empty) (*
 	if !con {
 		log.Println("There are no Online Nodes.")
 	}
+
 	return response1, nil
 }
 
@@ -202,7 +210,7 @@ func (g *GRPCBroker) ListPersonsNode(ctx context.Context, in *api.NodeInfo) (*ap
 	)
 
 	for k, v := range g.Nodes {
-		if k == in.Id && v.IsOnline == true {
+		if k == in.Id && v.IsOnline {
 			a := api.NewServerClient(v.Connection)
 			if response, err = a.ListPersons(context.Background(), &api.Empty{}); err != nil {
 				g.Nodes[k].IsOnline = false
@@ -231,12 +239,14 @@ func (g *GRPCBroker) GetOnePersonBroadcast(ctx context.Context, in *api.Person) 
 
 	for k, v := range g.Nodes {
 		if !v.IsOnline {
+
 			continue
 		}
 		a := api.NewServerClient(v.Connection)
 		if response, err = a.GetOnePerson(context.Background(), in); err != nil {
 			g.Nodes[k].IsOnline = false
 			log.Println("Error while trying to call GetOnePerson for Node: ", k, ". Error:", err)
+
 			continue
 		}
 		g.Nodes[k].LastSeen = time.Now()
@@ -244,8 +254,6 @@ func (g *GRPCBroker) GetOnePersonBroadcast(ctx context.Context, in *api.Person) 
 	}
 	if !connect {
 		log.Println("There are no Nodes connected.")
-
-		return response, nil
 	}
 
 	return response, nil
@@ -260,11 +268,12 @@ func (g *GRPCBroker) GetOnePersonNode(ctx context.Context, in *api.Person) (*api
 	)
 
 	for k, v := range g.Nodes {
-		if k == in.Node && v.IsOnline == true {
+		if k == in.Node && v.IsOnline {
 			a := api.NewServerClient(v.Connection)
 			if response, err = a.GetOnePerson(context.Background(), in); err != nil {
 				g.Nodes[k].IsOnline = false
 				log.Println("Error while trying to run GetOnePerson: ", err)
+
 				continue
 			}
 			g.Nodes[k].LastSeen = time.Now()
@@ -289,6 +298,7 @@ func (g *GRPCBroker) GetMultiPersonBroadcast(ctx context.Context, in *api.MultiP
 	response1 := &api.MultiPerson{}
 	for k, v := range g.Nodes {
 		if !v.IsOnline {
+
 			continue
 		}
 		a := api.NewServerClient(v.Connection)
@@ -304,8 +314,6 @@ func (g *GRPCBroker) GetMultiPersonBroadcast(ctx context.Context, in *api.MultiP
 	}
 	if !connect {
 		log.Println("There are no Nodes connected.")
-
-		return &api.MultiPerson{}, nil
 	}
 
 	return response, nil
@@ -319,7 +327,7 @@ func (g *GRPCBroker) GetMultiPersonNode(ctx context.Context, in *api.MultiPerson
 	)
 
 	for k, v := range g.Nodes {
-		if k == in.Persons[0].Node && v.IsOnline == true {
+		if k == in.Persons[0].Node && v.IsOnline {
 			a := api.NewServerClient(v.Connection)
 			if response, err = a.GetMultiPerson(context.Background(), in); err != nil {
 				g.Nodes[k].IsOnline = false
@@ -340,13 +348,13 @@ func (g *GRPCBroker) GetMultiPersonNode(ctx context.Context, in *api.MultiPerson
 //DropOnePersonBroadcast looks through all connected Nodes and deletes specified person
 func (g *GRPCBroker) DropOnePersonBroadcast(ctx context.Context, in *api.Person) (*api.Empty, error) {
 	var (
-		//response *api.Empty
 		err     error
 		success bool
 	)
 
 	for k, v := range g.Nodes {
 		if !v.IsOnline {
+
 			continue
 		}
 		a := api.NewServerClient(v.Connection)
@@ -369,15 +377,10 @@ func (g *GRPCBroker) DropOnePersonBroadcast(ctx context.Context, in *api.Person)
 
 //DropOnePersonNode deletes given person from specified Node
 func (g *GRPCBroker) DropOnePersonNode(ctx context.Context, in *api.Person) (*api.Empty, error) {
-	var (
-		//response *api.Empty
-		err error
-	)
-
 	for k, v := range g.Nodes {
-		if k == in.Node && v.IsOnline == true {
+		if k == in.Node && v.IsOnline {
 			a := api.NewServerClient(v.Connection)
-			if _, err = a.DropOnePerson(context.Background(), in); err != nil {
+			if _, err := a.DropOnePerson(context.Background(), in); err != nil {
 				g.Nodes[k].IsOnline = false
 				log.Println("Error while trying to run DropOnePerson: ", err)
 
@@ -387,9 +390,7 @@ func (g *GRPCBroker) DropOnePersonNode(ctx context.Context, in *api.Person) (*ap
 
 			return &api.Empty{}, nil
 		}
-
 	}
-
 	log.Println("Given Node is not connected")
 
 	return &api.Empty{}, nil
@@ -405,21 +406,22 @@ func (g *GRPCBroker) DropMultiPersonBroadcast(ctx context.Context, in *api.Multi
 
 	for k, v := range g.Nodes {
 		if !v.IsOnline {
+
 			continue
 		}
 		a := api.NewServerClient(v.Connection)
-		response, err = a.DropMultiPerson(context.Background(), in)
-		if err == nil {
-			g.Nodes[k].LastSeen = time.Now()
-			success = true
+		if response, err = a.DropMultiPerson(context.Background(), in); err != nil {
+			g.Nodes[k].IsOnline = false
+			log.Println("Error while trying to run DropMultiPerson: ", err)
 		}
+		g.Nodes[k].LastSeen = time.Now()
+		success = true
 	}
-	if success {
-
-		return &api.Empty{Response: "Successfully dropped"}, nil
+	if !success {
+		log.Println("There are no Nodes connected.")
 	}
 
-	return response, err
+	return response, nil
 
 }
 
@@ -431,63 +433,65 @@ func (g *GRPCBroker) DropMultiPersonNode(ctx context.Context, in *api.MultiPerso
 	)
 
 	for k, v := range g.Nodes {
-		if k == in.Persons[0].Node && v.IsOnline == true {
+		if k == in.Persons[0].Node && v.IsOnline {
 			a := api.NewServerClient(v.Connection)
-			if response, err = a.DropMultiPerson(context.Background(), in); err == nil {
-				g.Nodes[k].LastSeen = time.Now()
-				return response, err
-			} else {
-				return response, err
+			if response, err = a.DropMultiPerson(context.Background(), in); err != nil {
+				g.Nodes[k].IsOnline = false
+				log.Println("Error while trying to run DropMultiPerson: ", err)
+
+				return &api.Empty{}, nil
 			}
+			g.Nodes[k].LastSeen = time.Now()
+
+			return response, nil
 		}
 	}
-	err = errors.New("Given Node is not connected to the server")
+	log.Println("Given Node is not connected to the server")
 
-	return &api.Empty{}, err
+	return &api.Empty{}, nil
 }
 
-//InsertOnePersonNode adds given Person to a specified Node
-func (g *GRPCBroker) InsertOnePersonNode(ctx context.Context, in *api.Person) (*api.Empty, error) {
-	var (
-		response *api.Empty
-		err      error
-	)
+//UpsertOnePersonNode adds given Person to a specified Node
+func (g *GRPCBroker) UpsertOnePersonNode(ctx context.Context, in *api.Person) (*api.Empty, error) {
+	var err error
 
 	for k, v := range g.Nodes {
-		if k == in.Node && v.IsOnline == true {
+		if k == in.Node && v.IsOnline {
 			a := api.NewServerClient(v.Connection)
-			if response, err = a.InsertOnePerson(context.Background(), in); err == nil {
-				g.Nodes[k].LastSeen = time.Now()
-				return response, err
-			} else {
-				return response, err
+			if _, err = a.UpsertOnePerson(context.Background(), in); err != nil {
+				g.Nodes[k].IsOnline = false
+				log.Println("Error while trying to run UpsertOnePerson: ", err)
+
+				return &api.Empty{}, nil
 			}
+			g.Nodes[k].LastSeen = time.Now()
+
+			return &api.Empty{}, nil
 		}
 	}
-	err = errors.New("Given Node is not connected to the server")
+	log.Println("Given Node is not connected to the server")
 
-	return response, err
+	return &api.Empty{}, nil
 }
 
-//InsertMultiPersonNode adds given multiple persons to a specified Node
-func (g *GRPCBroker) InsertMultiPersonNode(ctx context.Context, in *api.MultiPerson) (*api.Empty, error) {
-	var (
-		response *api.Empty
-		err      error
-	)
-
+//UpsertMultiPersonNode adds given multiple persons to a specified Node
+func (g *GRPCBroker) UpsertMultiPersonNode(ctx context.Context, in *api.MultiPerson) (*api.Empty, error) {
 	for k, v := range g.Nodes {
-		if k == in.Persons[0].Node && v.IsOnline == true {
+		if k == in.Persons[0].Node && v.IsOnline {
 			a := api.NewServerClient(v.Connection)
-			if response, err = a.InsertMultiPerson(context.Background(), in); err == nil {
-				g.Nodes[k].LastSeen = time.Now()
-				return response, err
-			} else {
-				return response, err
+			if _, err := a.UpsertMultiPerson(context.Background(), in); err != nil {
+				g.Nodes[k].IsOnline = false
+				log.Println("Error while trying to run UpsertMultiPerson: ", err)
+
+				return &api.Empty{}, nil
 			}
+			g.Nodes[k].LastSeen = time.Now()
+
+			return &api.Empty{}, nil
+
 		}
 	}
-	err = errors.New("Given Node is not connected to the server")
+	log.Println("Given Node is not connected to the server")
 
-	return response, err
+	return &api.Empty{}, nil
 }

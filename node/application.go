@@ -36,13 +36,17 @@ func (a *Application) Init() {
 	a.wg = &sync.WaitGroup{}
 	a.ctx, a.cancel = context.WithCancel(context.Background())
 
-	a.Person.Init()
+	if err = a.Person.Init(); err != nil {
+		log.Fatalf("Init failed: %s", err)
+	}
 
 	if err = a.ConnectToServer(); err != nil {
 		log.Fatalf("Did not connect to the server: %s", err)
 	}
 
-	a.SetgRPCServer()
+	if err = a.SetgRPCServer(); err != nil {
+		log.Fatalf("Error while setting gRPC Server: %s", err)
+	}
 
 }
 
@@ -52,15 +56,17 @@ func (a *Application) Start() {
 
 	a.ConnectWithServer()
 
-	//	a.PingServer()
-
 	a.StartgRPCServer()
 
 }
 
+//Stop function stop gRPC server, closes connection with the server
+//cancels go routines
 func (a *Application) Stop() {
 	a.grpcServer.Stop()
-	a.conn.Close()
+	if err := a.conn.Close(); err != nil {
+		fmt.Println("Error while closing connection with the server: ", err)
+	}
 	a.cancel()
 	a.wg.Wait()
 }

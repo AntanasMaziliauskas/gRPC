@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc"
 )
 
+//Node structure holds values of Port, LastSeen and Connection
 type Node struct {
 	Port       string
 	LastSeen   time.Time

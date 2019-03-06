@@ -8,17 +8,18 @@ import (
 	"strings"
 
 	"github.com/AntanasMaziliauskas/grpc/api"
-	"github.com/globalsign/mgo/bson"
 	"github.com/urfave/cli"
 	"google.golang.org/grpc"
 )
 
+//Application structure holds the value of client
 type Application struct {
 	client api.ControlClient
 }
 
+//Person structure holds the clues of ID, name, age and profession
 type Person struct {
-	ID         bson.ObjectId `bson:"_id,omitempty"`
+	ID         string
 	Name       string
 	Age        int64
 	Profession string
@@ -137,10 +138,10 @@ func (a *Application) GetOnePersonNode(c *cli.Context) error {
 //Looks through every Node that's connected to the server
 func (a *Application) GetMultiPersonBroadcast(c *cli.Context) error {
 	multiPerson := &api.MultiPerson{}
-	personList := a.parsePersons(c.GlobalString("person"))
+	personList := parsePersons(c.GlobalString("person"))
 
 	for _, v := range personList {
-		multiPerson.Persons = append(multiPerson.Persons, &api.Person{Id: v})
+		multiPerson.Persons = append(multiPerson.Persons, &api.Person{Id: v.ID})
 	}
 	response, err := a.client.GetMultiPersonBroadcast(context.Background(), multiPerson)
 	if err != nil {
@@ -157,13 +158,13 @@ func (a *Application) GetMultiPersonBroadcast(c *cli.Context) error {
 //GetMultiPersonNode returns multiple persons from specified Node
 func (a *Application) GetMultiPersonNode(c *cli.Context) error {
 	multiPerson := &api.MultiPerson{}
-	personList := a.parsePersons(c.GlobalString("person"))
+	personList := parsePersons(c.GlobalString("person"))
 	if c.GlobalString("node") == "" {
 		log.Fatalf("There is NO NODE provided.")
 	}
 
 	for _, v := range personList {
-		multiPerson.Persons = append(multiPerson.Persons, &api.Person{Id: v, Node: c.GlobalString("node")})
+		multiPerson.Persons = append(multiPerson.Persons, &api.Person{Id: v.ID, Node: c.GlobalString("node")})
 	}
 	response, err := a.client.GetMultiPersonNode(context.Background(), multiPerson)
 	if err != nil {
@@ -206,9 +207,9 @@ func (a *Application) DropOnePersonNode(c *cli.Context) error {
 func (a *Application) DropMultiPersonBroadcast(c *cli.Context) error {
 	multiPerson := &api.MultiPerson{}
 
-	personList := a.parsePersons(c.GlobalString("person"))
+	personList := parsePersons(c.GlobalString("person"))
 	for _, v := range personList {
-		multiPerson.Persons = append(multiPerson.Persons, &api.Person{Id: v})
+		multiPerson.Persons = append(multiPerson.Persons, &api.Person{Id: v.ID})
 	}
 	response, err := a.client.DropMultiPersonBroadcast(context.Background(), multiPerson)
 	if err != nil {
@@ -225,9 +226,9 @@ func (a *Application) DropMultiPersonNode(c *cli.Context) error {
 	if c.GlobalString("node") == "" {
 		log.Fatalf("There is NO NODE provided.")
 	}
-	personList := a.parsePersons(c.GlobalString("person"))
+	personList := parsePersons(c.GlobalString("person"))
 	for _, v := range personList {
-		multiPerson.Persons = append(multiPerson.Persons, &api.Person{Id: v, Node: c.GlobalString("node")})
+		multiPerson.Persons = append(multiPerson.Persons, &api.Person{Id: v.ID, Node: c.GlobalString("node")})
 	}
 	response, err := a.client.DropMultiPersonNode(context.Background(), multiPerson)
 	if err != nil {
@@ -238,34 +239,34 @@ func (a *Application) DropMultiPersonNode(c *cli.Context) error {
 	return nil
 }
 
-//InsertOnePersonNode adds given person to specified Node
-func (a *Application) InsertOnePersonNode(c *cli.Context) error {
+//UpsertOnePersonNode adds given person to specified Node
+func (a *Application) UpsertOnePersonNode(c *cli.Context) error {
 	if c.GlobalString("node") == "" {
 		log.Fatalf("There is NO NODE provided.")
 	}
-	personList := a.parsePerson(c.GlobalString("person"))
-	response, err := a.client.InsertOnePersonNode(context.Background(), &api.Person{Name: personList[0].Name, Age: personList[0].Age, Profession: personList[0].Profession, Node: c.GlobalString("node")})
+	personList := parsePerson(c.GlobalString("person"))
+	response, err := a.client.UpsertOnePersonNode(context.Background(), &api.Person{Id: personList.ID, Name: personList.Name, Age: personList.Age, Profession: personList.Profession, Node: c.GlobalString("node")})
 	if err != nil {
-		log.Fatalf("Error when calling InsertOnePersonNode: %s", err)
+		log.Fatalf("Error when calling UpsertOnePersonNode: %s", err)
 	}
 	log.Println("Response: ", response)
 
 	return nil
 }
 
-//InsertMultiPersonNode adds multiple persons to specified Node
-func (a *Application) InsertMultiPersonNode(c *cli.Context) error {
+//UpsertMultiPersonNode adds multiple persons to specified Node
+func (a *Application) UpsertMultiPersonNode(c *cli.Context) error {
 	multiPerson := &api.MultiPerson{}
 	if c.GlobalString("node") == "" {
 		log.Fatalf("There is NO NODE provided.")
 	}
-	personList := a.parsePerson(c.GlobalString("person"))
+	personList := parsePersons(c.GlobalString("person"))
 	for _, v := range personList {
 		multiPerson.Persons = append(multiPerson.Persons, &api.Person{Name: v.Name, Age: v.Age, Profession: v.Profession, Node: c.GlobalString("node")})
 	}
-	response, err := a.client.InsertMultiPersonNode(context.Background(), multiPerson)
+	response, err := a.client.UpsertMultiPersonNode(context.Background(), multiPerson)
 	if err != nil {
-		log.Fatalf("Error when calling InsertMultipleNode: %s", err)
+		log.Fatalf("Error when calling UpsertMultipleNode: %s", err)
 	}
 	log.Println("Response: ", response)
 
@@ -282,7 +283,7 @@ func (a *Application) MoveOnePerson(c *cli.Context) error {
 		log.Fatalf("Error when calling MoveOnePerson: %s", err)
 	}
 	if response.Node != c.GlobalString("node") {
-		_, err = a.client.InsertOnePersonNode(context.Background(), &api.Person{
+		_, err = a.client.UpsertOnePersonNode(context.Background(), &api.Person{
 			Name:       response.Name,
 			Age:        response.Age,
 			Profession: response.Profession,
@@ -304,27 +305,43 @@ func (a *Application) MoveOnePerson(c *cli.Context) error {
 	return nil
 }
 
-func (a *Application) parsePersons(s string) []string {
-	slice := strings.Split(s, ",")
+//parsePerson function parses string into Person structure
+func parsePerson(s string) Person {
+	var (
+		person Person
+		age    int64
+		err    error
+	)
 
-	return slice
+	slice := strings.Split(s, ".")
+	if len(slice) > 1 {
+		if age, err = strconv.ParseInt(slice[2], 10, 32); err != nil {
+			fmt.Println("Error while concerting string into int: ", err)
+		}
+		person = Person{
+			ID:         slice[0],
+			Name:       slice[1],
+			Age:        age,
+			Profession: slice[3],
+		}
+		return person
+	}
+	person = Person{
+		ID: slice[0],
+	}
+	return person
 }
 
-//Convert person flag into Person slice
-func (a *Application) parsePerson(s string) []Person {
+//parsePersons function parses string into []Person structure
+func parsePersons(s string) []Person {
 	var (
 		list []Person
-		age  int64
 	)
 
 	persons := strings.Split(s, ",")
 	for _, k := range persons {
-		personSlice := strings.Split(k, ".")
-		fmt.Println(len(personSlice))
-		if len(personSlice) > 1 {
-			age, _ = strconv.ParseInt(personSlice[1], 10, 32)
-		}
-		list = append(list, Person{Name: personSlice[0], Age: age, Profession: personSlice[2]})
+		one := parsePerson(k)
+		list = append(list, one)
 	}
 	return list
 }

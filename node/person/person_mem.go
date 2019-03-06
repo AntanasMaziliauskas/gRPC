@@ -2,17 +2,17 @@ package person
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"log"
 
 	"github.com/AntanasMaziliauskas/grpc/api"
 	"github.com/globalsign/mgo/bson"
 )
 
+//DataFromMem structure holds values of Data and ID
 type DataFromMem struct {
-	Persons map[bson.ObjectId]*Person
-	Data    []Person
-	ID      string
+	Data map[bson.ObjectId]*Person
+	ID   string
 }
 
 //Init function does nothing
@@ -23,31 +23,37 @@ func (d *DataFromMem) Init() error {
 
 //ListPersons function returns a list of all persons
 func (d *DataFromMem) ListPersons(ctx context.Context, in *api.Empty) (*api.MultiPerson, error) {
-	listOfData := &api.MultiPerson{}
+	listOfPersons := &api.MultiPerson{}
 
 	for _, v := range d.Data {
-		listOfData.Persons = append(listOfData.Persons, &api.Person{
+		listOfPersons.Persons = append(listOfPersons.Persons, &api.Person{
 			Name:       v.Name,
 			Age:        v.Age,
 			Profession: v.Profession,
 			Node:       d.ID,
 		})
 	}
-	/*if len(listOfData.Persons) < 1 {
-		err := errors.New("There are no persons in this Node")
-
-		return listOfData, err
-	}*/
-
-	return listOfData, nil
+	if len(listOfPersons.Persons) < 1 {
+		fmt.Println("No Data located.")
+	}
+	return listOfPersons, nil
 }
 
 //GetOnePerson function looks for person and returns it if found
 func (d *DataFromMem) GetOnePerson(ctx context.Context, in *api.Person) (*api.Person, error) {
+	if !bson.IsObjectIdHex(in.Id) {
+		log.Println("Provided ID is invalid")
 
-	found, err := sliceContainsString(in.Name, d.Data)
+		return &api.Person{}, nil
+	}
 
-	return &api.Person{Name: found.Name, Age: found.Age, Profession: found.Profession, Node: d.ID}, err
+	if v, ok := d.Data[bson.ObjectIdHex(in.Id)]; ok {
+		fmt.Println("Person sucessfully located.")
+
+		return &api.Person{Id: in.Id, Name: v.Name, Age: v.Age, Profession: v.Profession, Node: d.ID}, nil
+	}
+	fmt.Println("Person not located.")
+	return &api.Person{}, nil
 }
 
 //GetMultiPerson function looks for multiple persons and returns if found
@@ -55,35 +61,39 @@ func (d *DataFromMem) GetMultiPerson(ctx context.Context, in *api.MultiPerson) (
 	listOfData := &api.MultiPerson{}
 
 	for _, k := range in.Persons {
-		found, _ := sliceContainsString(k.Name, d.Data)
-		listOfData.Persons = append(listOfData.Persons, &api.Person{Name: found.Name, Age: found.Age, Profession: found.Profession, Node: d.ID})
+		if !bson.IsObjectIdHex(k.Id) {
+			log.Println("Provided ID is invalid")
+
+			continue
+		}
+		if v, ok := d.Data[bson.ObjectIdHex(k.Id)]; ok {
+			listOfData.Persons = append(listOfData.Persons, &api.Person{Id: v.ID.Hex(), Name: v.Name, Age: v.Age, Profession: v.Profession, Node: d.ID})
+		}
 	}
 	if len(listOfData.Persons) < 1 {
-		err := errors.New("Unable to locate given persons")
-
-		return listOfData, err
+		fmt.Println("Unable to locate given persons")
 	}
+
 	return listOfData, nil
 }
 
 //DropOnePerson removes given person from the slice
 func (d *DataFromMem) DropOnePerson(ctx context.Context, in *api.Person) (*api.Empty, error) {
-	newData := []Person{}
-	fmt.Println(d.Data)
-	for k, v := range d.Data {
-		if v.Name == in.Name {
-			newData = append(newData, d.Data[:k]...)
-			newData = append(newData, d.Data[k+1:]...)
-			d.Data = newData
-			fmt.Println(d.Data)
+	if !bson.IsObjectIdHex(in.Id) {
+		log.Println("Provided ID is invalid")
 
-			return &api.Empty{Response: "Person Successfully dropped"}, nil
-		}
+		return &api.Empty{}, nil
 	}
-	fmt.Println(d.Data)
-	err := errors.New("Unable to locate given person")
 
-	return &api.Empty{}, err
+	if _, ok := d.Data[bson.ObjectIdHex(in.Id)]; ok {
+		delete(d.Data, bson.ObjectIdHex(in.Id))
+
+		return &api.Empty{}, nil
+	}
+
+	fmt.Println("Unable to locate given person")
+
+	return &api.Empty{}, nil
 }
 
 //DropMultiPerson removes given persons from the slice
@@ -92,86 +102,84 @@ func (d *DataFromMem) DropMultiPerson(ctx context.Context, in *api.MultiPerson) 
 
 	fmt.Println(d.Data)
 	for _, k := range in.Persons {
-		newData := []Person{}
-		for i, v := range d.Data {
-			if v.Name == k.Name {
-				newData = append(newData, d.Data[:i]...)
-				newData = append(newData, d.Data[i+1:]...)
-				success = true
-				d.Data = newData
-			}
+		if !bson.IsObjectIdHex(k.Id) {
+			log.Println("Provided ID is invalid")
+
+			continue
+		}
+		if _, ok := d.Data[bson.ObjectIdHex(k.Id)]; ok {
+			delete(d.Data, bson.ObjectIdHex(k.Id))
+			success = true
 		}
 	}
-	if success {
+	if !success {
 		fmt.Println(d.Data)
+		fmt.Println("Unable to locate given persons")
 
-		return &api.Empty{Response: "Persons successfully dropped"}, nil
+		return &api.Empty{}, nil
 	}
 	fmt.Println(d.Data)
-	err := errors.New("Unable to locate given person")
+	fmt.Println("Persons successfully dropped")
 
-	return &api.Empty{}, err
+	return &api.Empty{}, nil
 }
 
-//InsertOnePerson adds person to slice
-func (d *DataFromMem) InsertOnePerson(ctx context.Context, in *api.Person) (*api.Empty, error) {
+//UpsertOnePerson adds person to slice
+func (d *DataFromMem) UpsertOnePerson(ctx context.Context, in *api.Person) (*api.Empty, error) {
+	if !bson.IsObjectIdHex(in.Id) {
+		log.Println("Provided ID is invalid")
 
-	fmt.Println(d.Data)
-	for _, v := range d.Data {
-		if v.Name == in.Name {
-			err := errors.New("Given person already exist")
-			fmt.Println(d.Data)
-
-			return &api.Empty{}, err
+		return &api.Empty{}, nil
+	}
+	if _, ok := d.Data[bson.ObjectIdHex(in.Id)]; ok {
+		d.Data[bson.ObjectIdHex(in.Id)].Name = in.Name
+		d.Data[bson.ObjectIdHex(in.Id)].Age = in.Age
+		d.Data[bson.ObjectIdHex(in.Id)].Profession = in.Profession
+		log.Println("Data Updated")
+	} else {
+		d.Data[bson.ObjectIdHex(in.Id)] = &Person{
+			ID:         bson.ObjectIdHex(in.Id),
+			Name:       in.Name,
+			Age:        in.Age,
+			Profession: in.Profession,
 		}
+		log.Println("Data inserted")
 	}
-	d.Data = append(d.Data, Person{Name: in.Name, Age: in.Age, Profession: in.Profession})
 	fmt.Println(d.Data)
 
-	return &api.Empty{Response: "Person successfully inserted"}, nil
+	return &api.Empty{}, nil
 }
 
-//InsertMultiPerson adds multiple persons to a slice
-func (d *DataFromMem) InsertMultiPerson(ctx context.Context, in *api.MultiPerson) (*api.Empty, error) {
-	var duplicate string
-	var inserted []string
-	var dup bool
-
-	fmt.Println(d.Data)
+//UpsertMultiPerson adds multiple persons to a slice
+func (d *DataFromMem) UpsertMultiPerson(ctx context.Context, in *api.MultiPerson) (*api.Empty, error) {
 	for _, v := range in.Persons {
-		dup = false
-		for _, k := range d.Data {
-			if v.Name == k.Name {
-				dup = true
-				duplicate = duplicate + v.Name + " "
-			}
-		}
-		if !dup {
-			inserted = append(inserted, v.Name)
-			d.Data = append(d.Data, Person{Name: v.Name, Age: v.Age, Profession: v.Profession})
-		}
-	}
-	if len(duplicate) < 1 {
-		fmt.Println(d.Data)
+		if !bson.IsObjectIdHex(v.Id) {
+			log.Println("Provided ID is invalid")
 
-		return &api.Empty{Response: "Successfully inserted"}, nil
+			continue
+		}
+		if _, ok := d.Data[bson.ObjectIdHex(v.Id)]; ok {
+			d.Data[bson.ObjectIdHex(v.Id)].Name = v.Name
+			d.Data[bson.ObjectIdHex(v.Id)].Age = v.Age
+			d.Data[bson.ObjectIdHex(v.Id)].Profession = v.Profession
+			log.Println("Data Updated")
+		} else {
+			d.Data[bson.ObjectIdHex(v.Id)] = &Person{
+				ID:         bson.ObjectIdHex(v.Id),
+				Name:       v.Name,
+				Age:        v.Age,
+				Profession: v.Profession,
+			}
+			log.Println("Data Inserted")
+		}
 	}
 	fmt.Println(d.Data)
-	message := duplicate + " are already inserted."
-	return &api.Empty{Response: message}, nil
+
+	return &api.Empty{}, nil
 }
 
-//ReceivedPing function updates LastSeen for the Node that pinged the server
+//Ping function does nothing
 func (d *DataFromMem) Ping(ctx context.Context, in *api.PingMessage) (*api.Empty, error) {
-	//fmt.Println("I Got Pinged From ", in.Id)
-
-	//TODO: Ka darome, jeigu Node yra dropintas ir visvien pingina?
-	/*for k := range g.Nodes {
-		if k == in.Id {
-			fmt.Println("I Got Pinged From ", in.Id)
-			g.Nodes[in.Id].LastSeen = time.Now()
-		}
-	}*/
 
 	return &api.Empty{}, nil
 }
