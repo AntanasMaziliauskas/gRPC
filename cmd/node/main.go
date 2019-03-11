@@ -34,7 +34,9 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 	id := "Node-" + strconv.Itoa(rand.Intn(1000))
 
-	handler = &person.DataFromMem{}
+	handler = &person.DataFromMem{
+		ID: id,
+	}
 
 	if *storage == "mongo" {
 		handler = &person.DataFromMgo{
@@ -49,7 +51,7 @@ func main() {
 	}
 
 	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt, syscall.SIGTERM, syscall.SIGSTOP, syscall.SIGKILL)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM /*syscall.SIGSTOP,*/, syscall.SIGKILL)
 
 	//TODO: Errors turetu ateiti iki cia.
 	app.Init()

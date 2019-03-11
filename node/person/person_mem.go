@@ -18,6 +18,7 @@ type DataFromMem struct {
 //Init function does nothing
 func (d *DataFromMem) Init() error {
 
+	d.Data = make(map[bson.ObjectId]*Person)
 	return nil
 }
 
@@ -27,6 +28,7 @@ func (d *DataFromMem) ListPersons(ctx context.Context, in *api.Empty) (*api.Mult
 
 	for _, v := range d.Data {
 		listOfPersons.Persons = append(listOfPersons.Persons, &api.Person{
+			Id:         v.ID.Hex(),
 			Name:       v.Name,
 			Age:        v.Age,
 			Profession: v.Profession,

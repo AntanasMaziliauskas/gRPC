@@ -251,6 +251,10 @@ func (g *GRPCBroker) GetOnePersonBroadcast(ctx context.Context, in *api.Person) 
 		}
 		g.Nodes[k].LastSeen = time.Now()
 		connect = true
+		if response != nil {
+
+			return response, nil
+		}
 	}
 	if !connect {
 		log.Println("There are no Nodes connected.")
@@ -316,7 +320,7 @@ func (g *GRPCBroker) GetMultiPersonBroadcast(ctx context.Context, in *api.MultiP
 		log.Println("There are no Nodes connected.")
 	}
 
-	return response, nil
+	return response1, nil
 }
 
 //GetMultiPersonNode function get information about multiple persons from a specific Node

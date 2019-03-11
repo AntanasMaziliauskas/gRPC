@@ -284,6 +284,7 @@ func (a *Application) MoveOnePerson(c *cli.Context) error {
 	}
 	if response.Node != c.GlobalString("node") {
 		_, err = a.client.UpsertOnePersonNode(context.Background(), &api.Person{
+			Id:         response.Id,
 			Name:       response.Name,
 			Age:        response.Age,
 			Profession: response.Profession,
