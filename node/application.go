@@ -83,11 +83,11 @@ func (a *Application) ConnectToServer() error {
 //ConnectWithServer function connects to a server and sends information about this Node
 func (a *Application) ConnectWithServer() {
 	c := api.NewNodeClient(a.conn)
-	response, err := c.AddNode(context.Background(), &api.NodeInfo{Id: a.ID, Source: a.Port})
+	_, err := c.AddNode(context.Background(), &api.NodeInfo{Id: a.ID, Source: a.Port})
 	if err != nil {
 		log.Fatalf("Error when calling AddNode: %s", err)
 	}
-	log.Printf("Connected %s", response)
+	log.Println("Connected to server.")
 	//	a.Timeout = response.Timeout
 }
 
@@ -124,30 +124,3 @@ func (a *Application) StartgRPCServer() {
 		}
 	}()
 }
-
-/*
-//PingServer launches go routine to start pingin server
-func (a *Application) PingServer() {
-	p := api.NewNodeClient(a.conn)
-
-	a.wg.Add(1)
-
-	go func() {
-		ticker := time.NewTicker(time.Duration(a.Timeout) / 2 * time.Second)
-		for {
-			select {
-			case <-ticker.C:
-				log.Printf("Pinging")
-				_, err := p.Ping(context.Background(), &api.PingMessage{Id: a.ID})
-				if err != nil {
-					log.Fatalf("Error when calling PingMe: %s", err)
-				}
-			case <-a.ctx.Done():
-				log.Println("Pinging has stopped")
-				a.wg.Done()
-
-				return
-			}
-		}
-	}()
-}*/

@@ -251,7 +251,7 @@ func (g *GRPCBroker) GetOnePersonBroadcast(ctx context.Context, in *api.Person) 
 		}
 		g.Nodes[k].LastSeen = time.Now()
 		connect = true
-		if response != nil {
+		if len(response.Id) > 1 {
 
 			return response, nil
 		}

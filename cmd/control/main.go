@@ -109,7 +109,7 @@ func main() {
 			},
 		},
 		{
-			Name:  "uptmultipersonnode",
+			Name:  "upsertmultipersonnode",
 			Usage: "Adds multiple persons to specified Node",
 			Action: func(c *cli.Context) error {
 				return control.UpsertMultiPersonNode(c)

@@ -89,6 +89,7 @@ func (d *DataFromMem) DropOnePerson(ctx context.Context, in *api.Person) (*api.E
 
 	if _, ok := d.Data[bson.ObjectIdHex(in.Id)]; ok {
 		delete(d.Data, bson.ObjectIdHex(in.Id))
+		log.Println("Person deleted")
 
 		return &api.Empty{}, nil
 	}
@@ -102,7 +103,6 @@ func (d *DataFromMem) DropOnePerson(ctx context.Context, in *api.Person) (*api.E
 func (d *DataFromMem) DropMultiPerson(ctx context.Context, in *api.MultiPerson) (*api.Empty, error) {
 	var success bool
 
-	fmt.Println(d.Data)
 	for _, k := range in.Persons {
 		if !bson.IsObjectIdHex(k.Id) {
 			log.Println("Provided ID is invalid")
@@ -115,12 +115,10 @@ func (d *DataFromMem) DropMultiPerson(ctx context.Context, in *api.MultiPerson) 
 		}
 	}
 	if !success {
-		fmt.Println(d.Data)
 		fmt.Println("Unable to locate given persons")
 
 		return &api.Empty{}, nil
 	}
-	fmt.Println(d.Data)
 	fmt.Println("Persons successfully dropped")
 
 	return &api.Empty{}, nil
@@ -147,7 +145,6 @@ func (d *DataFromMem) UpsertOnePerson(ctx context.Context, in *api.Person) (*api
 		}
 		log.Println("Data inserted")
 	}
-	fmt.Println(d.Data)
 
 	return &api.Empty{}, nil
 }
@@ -175,13 +172,11 @@ func (d *DataFromMem) UpsertMultiPerson(ctx context.Context, in *api.MultiPerson
 			log.Println("Data Inserted")
 		}
 	}
-	fmt.Println(d.Data)
 
 	return &api.Empty{}, nil
 }
 
 //Ping function does nothing
 func (d *DataFromMem) Ping(ctx context.Context, in *api.PingMessage) (*api.Empty, error) {
-
 	return &api.Empty{}, nil
 }

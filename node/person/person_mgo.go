@@ -2,10 +2,8 @@ package person
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
 	"log"
-	"net"
 
 	"github.com/AntanasMaziliauskas/grpc/api"
 	"github.com/globalsign/mgo"
@@ -31,8 +29,6 @@ func (d *DataFromMgo) Init() error {
 //ListPersons function returns a list of all persons
 func (d *DataFromMgo) ListPersons(ctx context.Context, in *api.Empty) (*api.MultiPerson, error) {
 	var err error
-
-	log.Println("Looking for data...")
 
 	listOfData := &api.MultiPerson{}
 	list := &[]Person{}
@@ -85,13 +81,15 @@ func (d *DataFromMgo) GetMultiPerson(ctx context.Context, in *api.MultiPerson) (
 		}
 		ids = append(ids, bson.ObjectIdHex(v.Id))
 	}
-
 	if err := d.Mgo.Find(bson.M{"_id": bson.M{"$in": ids}}).All(&result); err != nil {
-		fmt.Println("Unable to locate person. Error: ", err)
+		fmt.Println("Error while trying to look into DB: ", err)
 
 		return &api.MultiPerson{}, nil
 	}
+	if len(result) < 1 {
+		fmt.Println("Unable to locate given persons")
 
+	}
 	for _, k := range result {
 		listOfData.Persons = append(listOfData.Persons, &api.Person{Id: k.ID.Hex(), Name: k.Name, Age: k.Age, Profession: k.Profession, Node: d.ID})
 	}
@@ -208,31 +206,52 @@ func (d *DataFromMgo) UpsertMultiPerson(ctx context.Context, in *api.MultiPerson
 //connectTODB function connects to Mongo dabase.
 func (d *DataFromMgo) connectToDB() error {
 
-	tlsConfig := &tls.Config{}
-	dialInfo := &mgo.DialInfo{
-		Addrs: []string{"persondb-shard-00-00-mimet.mongodb.net:27017",
-			"persondb-shard-00-01-mimet.mongodb.net:27017",
-			"persondb-shard-00-02-mimet.mongodb.net:27017"},
-		Database: "admin",
-		Username: "node",
-		Password: "node01",
-	}
-	dialInfo.DialServer = func(addr *mgo.ServerAddr) (net.Conn, error) {
-		conn, err := tls.Dial("tcp", addr.String(), tlsConfig)
-		return conn, err
-	}
-	session, err := mgo.DialWithInfo(dialInfo)
+	session, err := mgo.Dial("127.0.0.1")
 	if err != nil {
-		fmt.Println(err)
+		panic(err)
 	}
 
-	d.Mgo = session.DB("Test").C("Persons")
+	//defer session.Close()
 
-	return nil // returininam error
+	session.SetMode(mgo.Monotonic, true)
+
+	// Drop Database
+	/*if IsDrop {
+		err = session.DB("test").DropDatabase()
+		if err != nil {
+			panic(err)
+		}
+	}*/
+
+	// Collection People
+	d.Mgo = session.DB(d.ID).C("people")
+	return nil
+
+	/*
+		tlsConfig := &tls.Config{}
+		dialInfo := &mgo.DialInfo{
+			Addrs: []string{"persondb-shard-00-00-mimet.mongodb.net:27017",
+				"persondb-shard-00-01-mimet.mongodb.net:27017",
+				"persondb-shard-00-02-mimet.mongodb.net:27017"},
+			Database: "admin",
+			Username: "node",
+			Password: "node01",
+		}
+		dialInfo.DialServer = func(addr *mgo.ServerAddr) (net.Conn, error) {
+			conn, err := tls.Dial("tcp", addr.String(), tlsConfig)
+			return conn, err
+		}
+		session, err := mgo.DialWithInfo(dialInfo)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		d.Mgo = session.DB(d.ID).C("Persons")
+
+		return nil // returininam error*/
 }
 
 //Ping function updates LastSeen for the Node that pinged the server
 func (d *DataFromMgo) Ping(ctx context.Context, in *api.PingMessage) (*api.Empty, error) {
-	fmt.Println("I Got Pinged")
 	return &api.Empty{}, nil
 }

@@ -265,7 +265,7 @@ func (a *Application) UpsertMultiPersonNode(c *cli.Context) error {
 	}
 	personList := parsePersons(c.GlobalString("person"))
 	for _, v := range personList {
-		multiPerson.Persons = append(multiPerson.Persons, &api.Person{Name: v.Name, Age: v.Age, Profession: v.Profession, Node: c.GlobalString("node")})
+		multiPerson.Persons = append(multiPerson.Persons, &api.Person{Id: v.ID, Name: v.Name, Age: v.Age, Profession: v.Profession, Node: c.GlobalString("node")})
 	}
 	response, err := a.client.UpsertMultiPersonNode(context.Background(), multiPerson)
 	if err != nil {
