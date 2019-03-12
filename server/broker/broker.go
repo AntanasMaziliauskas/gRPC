@@ -196,7 +196,7 @@ func (g *GRPCBroker) ListPersonsBroadcast(ctx context.Context, in *api.Empty) (*
 		g.Nodes[k].LastSeen = time.Now()
 	}
 	if !con {
-		log.Println("There are no Online Nodes.")
+		log.Println("There are no Nodes Online.")
 	}
 
 	return response1, nil

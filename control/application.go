@@ -137,6 +137,9 @@ func (a *Application) GetOnePersonNode(c *cli.Context) error {
 //GetMultiPersonBroadcast returns information about multiple persons
 //Looks through every Node that's connected to the server
 func (a *Application) GetMultiPersonBroadcast(c *cli.Context) error {
+	if c.GlobalString("person") == "" {
+		log.Fatalf("There is NO PERSON provided.")
+	}
 	multiPerson := &api.MultiPerson{}
 	personList := parsePersons(c.GlobalString("person"))
 
@@ -159,7 +162,7 @@ func (a *Application) GetMultiPersonBroadcast(c *cli.Context) error {
 func (a *Application) GetMultiPersonNode(c *cli.Context) error {
 	multiPerson := &api.MultiPerson{}
 	personList := parsePersons(c.GlobalString("person"))
-	if c.GlobalString("node") == "" {
+	if c.GlobalString("node") == "" || c.GlobalString("person") == "" {
 		log.Fatalf("There is NO NODE provided.")
 	}
 
