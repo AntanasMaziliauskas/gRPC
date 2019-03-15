@@ -3,12 +3,9 @@ package main
 import (
 	"flag"
 	"log"
-	"math/rand"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
-	"time"
 
 	"github.com/AntanasMaziliauskas/grpc/node"
 	"github.com/AntanasMaziliauskas/grpc/node/person"
@@ -26,13 +23,17 @@ func main() {
 	flag.Parse()
 
 	if config, err = node.ReadConfig(*conf); err != nil {
-		log.Fatalf("Could not read config file: %s", err)
+		log.Printf("Could not read config file: %s", err)
 	}
 	config.ApplyDefaults()
 
 	//Random Node name
-	rand.Seed(time.Now().UnixNano())
-	id := "Node-" + strconv.Itoa(rand.Intn(1000))
+	//rand.Seed(time.Now().UnixNano())
+	//id := "Node-" + strconv.Itoa(rand.Intn(1000))
+
+	name, _ := os.Hostname()
+	//log.Println(name)
+	id := "Node-" + name
 
 	handler = &person.DataFromMem{
 		ID: id,
@@ -51,7 +52,7 @@ func main() {
 	}
 
 	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt, syscall.SIGTERM /*syscall.SIGSTOP,*/, syscall.SIGKILL)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM, syscall.SIGSTOP, syscall.SIGKILL)
 
 	//TODO: Errors turetu ateiti iki cia.
 	app.Init()

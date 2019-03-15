@@ -206,13 +206,13 @@ func (d *DataFromMgo) UpsertMultiPerson(ctx context.Context, in *api.MultiPerson
 //connectTODB function connects to Mongo dabase.
 func (d *DataFromMgo) connectToDB() error {
 
-	session, err := mgo.Dial("127.0.0.1")
+	session, err := mgo.Dial("192.168.200.244:27017")
 	if err != nil {
 		panic(err)
 	}
 
 	//defer session.Close()
-
+	//TODO: Close the session when Node goes offline
 	session.SetMode(mgo.Monotonic, true)
 
 	// Drop Database

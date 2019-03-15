@@ -28,7 +28,7 @@ type Person struct {
 //Init function connects to a server
 func (a *Application) Init() {
 	//TODO: Ar paduodame serverio adresa per flag?
-	source := "0.0.0.0:7778"
+	source := "172.17.0.1:7778"
 	conn, err := grpc.Dial(source, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("did not connect: %s", err)

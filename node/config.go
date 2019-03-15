@@ -32,6 +32,6 @@ func (c *Config) ApplyDefaults() {
 		c.Node.Path = "data.json"
 	}
 	if c.Server.Source == "" {
-		c.Server.Source = "0.0.0.0:7778"
+		c.Server.Source = "serveris:7778"
 	}
 }

@@ -15,7 +15,7 @@ func main() {
 	app := server.Application{Broker: &broker.GRPCBroker{}}
 
 	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt, syscall.SIGTERM,/* syscall.SIGSTOP,*/ syscall.SIGKILL)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM, syscall.SIGSTOP, syscall.SIGKILL)
 
 	app.Init()
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"sync"
 
 	"github.com/AntanasMaziliauskas/grpc/api"
@@ -85,9 +86,10 @@ func (a *Application) ConnectWithServer() {
 	c := api.NewNodeClient(a.conn)
 	_, err := c.AddNode(context.Background(), &api.NodeInfo{Id: a.ID, Source: a.Port})
 	if err != nil {
-		log.Fatalf("Error when calling AddNode: %s", err)
+		log.Printf("Error when calling AddNode: %s", err)
+	} else {
+		log.Println("Connected to server.")
 	}
-	log.Println("Connected to server.")
 	//	a.Timeout = response.Timeout
 }
 
@@ -102,9 +104,12 @@ func (a *Application) SetgRPCServer() error {
 	if port, err = freeport.GetFreePort(); err != nil {
 		log.Fatal("Failed to generate random port: ", err)
 	}
-	a.Port = fmt.Sprintf(":%d", port)
-
-	if a.lis, err = net.Listen("tcp", a.Port); err != nil {
+	name, _ := os.Hostname()
+	//a.Port = ":8080"
+	//test
+	a.Port = fmt.Sprintf("%s:%d", name, port)
+	portas := fmt.Sprintf(":%d", port)
+	if a.lis, err = net.Listen("tcp", portas); err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
