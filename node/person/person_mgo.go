@@ -210,45 +210,10 @@ func (d *DataFromMgo) connectToDB() error {
 	if err != nil {
 		panic(err)
 	}
-
-	//defer session.Close()
-	//TODO: Close the session when Node goes offline
 	session.SetMode(mgo.Monotonic, true)
-
-	// Drop Database
-	/*if IsDrop {
-		err = session.DB("test").DropDatabase()
-		if err != nil {
-			panic(err)
-		}
-	}*/
-
-	// Collection People
 	d.Mgo = session.DB(d.ID).C("people")
+
 	return nil
-
-	/*
-		tlsConfig := &tls.Config{}
-		dialInfo := &mgo.DialInfo{
-			Addrs: []string{"persondb-shard-00-00-mimet.mongodb.net:27017",
-				"persondb-shard-00-01-mimet.mongodb.net:27017",
-				"persondb-shard-00-02-mimet.mongodb.net:27017"},
-			Database: "admin",
-			Username: "node",
-			Password: "node01",
-		}
-		dialInfo.DialServer = func(addr *mgo.ServerAddr) (net.Conn, error) {
-			conn, err := tls.Dial("tcp", addr.String(), tlsConfig)
-			return conn, err
-		}
-		session, err := mgo.DialWithInfo(dialInfo)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		d.Mgo = session.DB(d.ID).C("Persons")
-
-		return nil // returininam error*/
 }
 
 //Ping function updates LastSeen for the Node that pinged the server
