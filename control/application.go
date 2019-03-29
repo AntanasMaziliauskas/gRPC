@@ -6,6 +6,7 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/AntanasMaziliauskas/grpc/api"
 	"github.com/urfave/cli"
@@ -28,7 +29,7 @@ type Person struct {
 //Init function connects to a server
 func (a *Application) Init() {
 	//TODO: Ar paduodame serverio adresa per flag?
-	source := "172.17.0.1:7778"
+	source := "192.168.99.1:7778"
 	conn, err := grpc.Dial(source, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("did not connect: %s", err)
@@ -42,10 +43,15 @@ func (a *Application) ListPersonsBroadcast(c *cli.Context) error {
 		response *api.MultiPerson
 		err      error
 	)
+	//Startas
+	startTime := time.Now()
 
 	if response, err = a.client.ListPersonsBroadcast(context.Background(), &api.Empty{}); err != nil {
 		log.Fatalf("Error when calling ListPersonsBroadcast: %s", err)
 	}
+	//Finishas
+	duration := time.Now().Sub(startTime)
+	log.Println(duration)
 
 	log.Printf("Response: \n")
 	for _, v := range response.Persons {

@@ -41,9 +41,9 @@ func (a *Application) Start() {
 	a.StartServer()
 	a.Broker.Start(Timeout)
 
-	/*	if err := a.StartHTTPServer(); err != nil {
+	if err := a.StartHTTPServer(); err != nil {
 		log.Fatal("ListenAndServe: ", err)
-	}*/
+	}
 
 }
 

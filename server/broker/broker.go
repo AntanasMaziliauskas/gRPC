@@ -176,25 +176,48 @@ func (g *GRPCBroker) ListPersonsBroadcast(ctx context.Context, in *api.Empty) (*
 		err      error
 		con      bool
 	)
-
+	var wg sync.WaitGroup //
+	wg.Add(len(g.Nodes))  //
 	response1 := &api.MultiPerson{}
+	c := make(chan api.MultiPerson) //
 
 	for k, v := range g.Nodes {
+		//Startas
+		startTime := time.Now()
 		if !v.IsOnline {
 
 			continue
 		}
-		a := api.NewServerClient(v.Connection)
-		if response, err = a.ListPersons(context.Background(), &api.Empty{}); err != nil {
-			g.Nodes[k].IsOnline = false
-			log.Println("Error while trying to call ListPersons: ", err)
 
-			continue
-		}
-		con = true
-		response1.Persons = append(response1.Persons, response.Persons...)
-		g.Nodes[k].LastSeen = time.Now()
+		go func(k string, v *Node, c chan api.MultiPerson) {
+			defer wg.Done()
+			a := api.NewServerClient(v.Connection)
+			if response, err = a.ListPersons(context.Background(), &api.Empty{}); err != nil {
+				g.Nodes[k].IsOnline = false
+				log.Println("Error while trying to call ListPersons: ", err)
+
+				return
+			}
+			con = true
+			//response1.Persons = append(response1.Persons, response.Persons...)
+			g.Nodes[k].LastSeen = time.Now()
+			//Finishas
+			duration := time.Now().Sub(startTime)
+			log.Println("Atsakas iš Node užtruko: ", duration)
+
+			c <- *response
+		}(k, v, c)
+
 	}
+	go func() {
+		wg.Wait()
+		close(c)
+	}()
+	for v := range c {
+		//fmt.Println(v)
+		response1.Persons = append(response1.Persons, v.Persons...)
+	}
+
 	if !con {
 		log.Println("There are no Nodes Online.")
 	}
@@ -210,6 +233,8 @@ func (g *GRPCBroker) ListPersonsNode(ctx context.Context, in *api.NodeInfo) (*ap
 	)
 
 	for k, v := range g.Nodes {
+		//Startas
+		startTime := time.Now()
 		if k == in.Id && v.IsOnline {
 			a := api.NewServerClient(v.Connection)
 			if response, err = a.ListPersons(context.Background(), &api.Empty{}); err != nil {
@@ -219,6 +244,9 @@ func (g *GRPCBroker) ListPersonsNode(ctx context.Context, in *api.NodeInfo) (*ap
 				return &api.MultiPerson{}, nil
 			}
 			g.Nodes[k].LastSeen = time.Now()
+
+			duration := time.Now().Sub(startTime)
+			log.Println("Atsakas iš Node užtruko: ", duration)
 
 			return response, nil
 		}
@@ -238,6 +266,8 @@ func (g *GRPCBroker) GetOnePersonBroadcast(ctx context.Context, in *api.Person) 
 	)
 
 	for k, v := range g.Nodes {
+		//Startas
+		startTime := time.Now()
 		if !v.IsOnline {
 
 			continue
@@ -252,9 +282,13 @@ func (g *GRPCBroker) GetOnePersonBroadcast(ctx context.Context, in *api.Person) 
 		g.Nodes[k].LastSeen = time.Now()
 		connect = true
 		if len(response.Id) > 1 {
+			duration := time.Now().Sub(startTime)
+			log.Println(duration)
 
 			return response, nil
 		}
+		duration := time.Now().Sub(startTime)
+		log.Println("Atsakas iš Node užtruko: ", duration)
 	}
 	if !connect {
 		log.Println("There are no Nodes connected.")
@@ -272,6 +306,8 @@ func (g *GRPCBroker) GetOnePersonNode(ctx context.Context, in *api.Person) (*api
 	)
 
 	for k, v := range g.Nodes {
+		//Startas
+		startTime := time.Now()
 		if k == in.Node && v.IsOnline {
 			a := api.NewServerClient(v.Connection)
 			if response, err = a.GetOnePerson(context.Background(), in); err != nil {
@@ -281,7 +317,9 @@ func (g *GRPCBroker) GetOnePersonNode(ctx context.Context, in *api.Person) (*api
 				continue
 			}
 			g.Nodes[k].LastSeen = time.Now()
-
+			//finish
+			duration := time.Now().Sub(startTime)
+			log.Println("Atsakas iš Node užtruko: ", duration)
 			return response, nil
 		}
 	}

@@ -4,17 +4,22 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/AntanasMaziliauskas/grpc/api"
-	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
+
+	//"github.com/globalsign/mgo/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 //DataFromMgo structure holds values od Data, ID and Mgo
 type DataFromMgo struct {
 	Data []Person
 	ID   string
-	Mgo  *mgo.Collection
+	Mgo  *mongo.Collection
 }
 
 //Init function connects to database and sets session
@@ -29,14 +34,36 @@ func (d *DataFromMgo) Init() error {
 //ListPersons function returns a list of all persons
 func (d *DataFromMgo) ListPersons(ctx context.Context, in *api.Empty) (*api.MultiPerson, error) {
 	var err error
+	var list []*Person
 
 	listOfData := &api.MultiPerson{}
-	list := &[]Person{}
-	if err = d.Mgo.Find(bson.M{}).All(list); err != nil {
-		log.Println("Error while trying to find data: ", err)
+	//list := []Person{}
+	//Start
+	startTime := time.Now()
+
+	cur, err := d.Mgo.Find(context.TODO(), bson.M{})
+	if err != nil {
+		log.Println(err)
 	}
 
-	for _, v := range *list {
+	//TODO: Iskarto i Person slice krauti
+	for cur.Next(context.TODO()) {
+		var elem Person
+		err := cur.Decode(&elem)
+		if err != nil {
+			log.Println(err)
+		}
+		list = append(list, &elem)
+	}
+	cur.Close(context.TODO())
+	//	fmt.Printf("Found: %+v\n", list)
+	//	if err = d.Mgo.Find(bson.M{}).All(list); err != nil {
+	//		log.Println("Error while trying to find data: ", err)
+	//	}
+	//finish
+	duration := time.Now().Sub(startTime)
+	log.Println("Paieška duombazėj užtruko: ", duration)
+	for _, v := range list {
 		listOfData.Persons = append(listOfData.Persons, &api.Person{Id: v.ID.Hex(),
 			Name: v.Name, Age: v.Age, Profession: v.Profession, Node: d.ID})
 	}
@@ -57,11 +84,17 @@ func (d *DataFromMgo) GetOnePerson(ctx context.Context, in *api.Person) (*api.Pe
 
 		return &api.Person{}, nil
 	}
-	if err := d.Mgo.Find(bson.M{"_id": bson.ObjectIdHex(in.Id)}).One(&result); err != nil {
+	//Start
+	startTime := time.Now()
+	id, _ := primitive.ObjectIDFromHex(in.Id)
+	if err := d.Mgo.FindOne(context.TODO(), primitive.D{{"_id", id}}).Decode(&result); err != nil {
 		log.Println("Unable to locate given person")
 
 		return &api.Person{}, nil
 	}
+	//finish
+	duration := time.Now().Sub(startTime)
+	log.Println("Paieška duombazėj užtruko: ", duration)
 
 	return &api.Person{Id: result.ID.Hex(), Name: result.Name, Age: result.Age, Profession: result.Profession, Node: d.ID}, nil
 
@@ -70,8 +103,8 @@ func (d *DataFromMgo) GetOnePerson(ctx context.Context, in *api.Person) (*api.Pe
 //GetMultiPerson function looks for multiple persons and returns if found
 func (d *DataFromMgo) GetMultiPerson(ctx context.Context, in *api.MultiPerson) (*api.MultiPerson, error) {
 	listOfData := &api.MultiPerson{}
-	result := []Person{}
-	var ids []bson.ObjectId
+	result := Person{}
+	//var ids []bson.ObjectId
 
 	for _, v := range in.Persons {
 		if !bson.IsObjectIdHex(v.Id) {
@@ -79,21 +112,20 @@ func (d *DataFromMgo) GetMultiPerson(ctx context.Context, in *api.MultiPerson) (
 
 			continue
 		}
-		ids = append(ids, bson.ObjectIdHex(v.Id))
-	}
-	if err := d.Mgo.Find(bson.M{"_id": bson.M{"$in": ids}}).All(&result); err != nil {
-		fmt.Println("Error while trying to look into DB: ", err)
+		id, _ := primitive.ObjectIDFromHex(v.Id)
+		if err := d.Mgo.FindOne(context.TODO(), primitive.D{{"_id", id}}).Decode(&result); err != nil {
+			fmt.Println("Error while trying to look into DB: ", err)
 
-		return &api.MultiPerson{}, nil
-	}
-	if len(result) < 1 {
-		fmt.Println("Unable to locate given persons")
+			return &api.MultiPerson{}, nil
+		}
+		if len(result.ID) < 1 {
+			fmt.Println("Unable to locate given persons")
+
+		}
+
+		listOfData.Persons = append(listOfData.Persons, &api.Person{Id: result.ID.Hex(), Name: result.Name, Age: result.Age, Profession: result.Profession, Node: d.ID})
 
 	}
-	for _, k := range result {
-		listOfData.Persons = append(listOfData.Persons, &api.Person{Id: k.ID.Hex(), Name: k.Name, Age: k.Age, Profession: k.Profession, Node: d.ID})
-	}
-
 	return listOfData, nil
 }
 
@@ -106,7 +138,8 @@ func (d *DataFromMgo) DropOnePerson(ctx context.Context, in *api.Person) (*api.E
 
 		return &api.Empty{}, nil
 	}
-	err = d.Mgo.Remove(bson.M{"_id": bson.ObjectIdHex(in.Id)})
+	id, _ := primitive.ObjectIDFromHex(in.Id)
+	_, err = d.Mgo.DeleteOne(context.TODO(), primitive.D{{"_id", id}})
 	if err != nil {
 		fmt.Println("Unable to locate person. Error: ", err)
 
@@ -127,7 +160,9 @@ func (d *DataFromMgo) DropMultiPerson(ctx context.Context, in *api.MultiPerson) 
 
 			continue
 		}
-		if err := d.Mgo.Remove(bson.M{"_id": bson.ObjectIdHex(k.Id)}); err != nil {
+		id, _ := primitive.ObjectIDFromHex(k.Id)
+		_, err := d.Mgo.DeleteOne(context.TODO(), primitive.D{{"_id", id}})
+		if err != nil {
 			fmt.Println("Error wile trying to remove ", k.Id, " . Error: ", err)
 
 			continue
@@ -146,23 +181,37 @@ func (d *DataFromMgo) DropMultiPerson(ctx context.Context, in *api.MultiPerson) 
 
 //UpsertOnePerson adds person to slice
 func (d *DataFromMgo) UpsertOnePerson(ctx context.Context, in *api.Person) (*api.Empty, error) {
-	var p Person
+	//var p Person
 
 	if !bson.IsObjectIdHex(in.Id) {
 		fmt.Println("Provided ID is invalid")
 
 		return &api.Empty{}, nil
 	}
-	p = Person{
+	/*p = Person{
 		ID:         bson.ObjectIdHex(in.Id),
 		Name:       in.Name,
 		Age:        in.Age,
 		Profession: in.Profession,
+	}*/
+	p := primitive.D{
+		{"$set", primitive.D{
+			//{"_id", bson.ObjectIdHex(in.Id)},
+			{"name", in.Name},
+			{"age", in.Age},
+			{"profession", in.Profession},
+		}},
 	}
 
-	selector := bson.M{"_id": p.ID}
-	upsertdata := bson.M{"$set": p}
-	if _, err := d.Mgo.Upsert(selector, upsertdata); err != nil {
+	findOptions := options.Update()
+	b := true
+	findOptions.Upsert = &b
+	id, _ := primitive.ObjectIDFromHex(in.Id)
+
+	//selector := bson.M{"_id": p.ID}
+	//upsertdata := bson.M{"$set": p}
+	_, err := d.Mgo.UpdateOne(context.TODO(), primitive.D{{"_id", id}}, p, findOptions)
+	if err != nil {
 		fmt.Println("Error while trying to upsert: ", err)
 
 		return &api.Empty{}, nil
@@ -174,7 +223,7 @@ func (d *DataFromMgo) UpsertOnePerson(ctx context.Context, in *api.Person) (*api
 
 //UpsertMultiPerson adds multiple persons to a slice
 func (d *DataFromMgo) UpsertMultiPerson(ctx context.Context, in *api.MultiPerson) (*api.Empty, error) {
-	var p Person
+	//var p Person
 
 	for _, v := range in.Persons {
 		if !bson.IsObjectIdHex(v.Id) {
@@ -182,16 +231,27 @@ func (d *DataFromMgo) UpsertMultiPerson(ctx context.Context, in *api.MultiPerson
 
 			return &api.Empty{}, nil
 		}
-		p = Person{
-			ID:         bson.ObjectIdHex(v.Id),
-			Name:       v.Name,
-			Age:        v.Age,
-			Profession: v.Profession,
+
+		id, _ := primitive.ObjectIDFromHex(v.Id)
+
+		p := primitive.D{
+			{"$set", primitive.D{
+				//{"_id", bson.ObjectIdHex(in.Id)},
+				{"name", v.Name},
+				{"age", v.Age},
+				{"profession", v.Profession},
+			}},
 		}
 
-		selector := bson.M{"_id": p.ID}
-		upsertdata := bson.M{"$set": p}
-		if _, err := d.Mgo.Upsert(selector, upsertdata); err != nil {
+		findOptions := options.Update()
+		b := true
+		findOptions.Upsert = &b
+		//id, _ := primitive.ObjectIDFromHex(v.Id)
+
+		//selector := bson.M{"_id": p.ID}
+		//upsertdata := bson.M{"$set": p}
+		_, err := d.Mgo.UpdateOne(context.TODO(), primitive.D{{"_id", id}}, p, findOptions)
+		if err != nil {
 			fmt.Println("Error while trying to upsert", v.Id, ": ", err)
 
 			continue
@@ -206,12 +266,13 @@ func (d *DataFromMgo) UpsertMultiPerson(ctx context.Context, in *api.MultiPerson
 //connectTODB function connects to Mongo dabase.
 func (d *DataFromMgo) connectToDB() error {
 
-	session, err := mgo.Dial("192.168.200.244:27017")
+	//ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("mongodb://192.168.200.244:27017"))
 	if err != nil {
 		panic(err)
 	}
-	session.SetMode(mgo.Monotonic, true)
-	d.Mgo = session.DB(d.ID).C("people")
+	//session.SetMode(mgo.Monotonic, true)
+	d.Mgo = client.Database(d.ID).Collection("people")
 
 	return nil
 }

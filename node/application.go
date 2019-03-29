@@ -68,6 +68,7 @@ func (a *Application) Stop() {
 	if err := a.conn.Close(); err != nil {
 		fmt.Println("Error while closing connection with the server: ", err)
 	}
+
 	a.cancel()
 	a.wg.Wait()
 }

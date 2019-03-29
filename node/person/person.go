@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/AntanasMaziliauskas/grpc/api"
-	"github.com/globalsign/mgo/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 //PersonService interface holds Init, ListPersons, GetOnePerson, GetMultiPerson
@@ -23,8 +23,8 @@ type PersonService interface {
 
 //Person structure holds values of ID, Name, Age and Profession.
 type Person struct {
-	ID         bson.ObjectId `bson:"_id,omitempty"`
-	Name       string        `bson:"name"`
-	Age        int64         `bson:"age"`
-	Profession string        `bson:"profession"`
+	ID         primitive.ObjectID `bson:"_id,omitempty"`
+	Name       string             `bson:"name"`
+	Age        int64              `bson:"age"`
+	Profession string             `bson:"profession"`
 }

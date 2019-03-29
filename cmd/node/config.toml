@@ -6,5 +6,5 @@ path = "data.json"
 
 [Server]
 #IP = "0.0.0.0"
-source = "serveris:7778"
+source = ":7778"
 #port = "7778"

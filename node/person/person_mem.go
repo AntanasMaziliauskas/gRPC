@@ -7,6 +7,7 @@ import (
 
 	"github.com/AntanasMaziliauskas/grpc/api"
 	"github.com/globalsign/mgo/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 //DataFromMem structure holds values of Data and ID
@@ -131,6 +132,9 @@ func (d *DataFromMem) UpsertOnePerson(ctx context.Context, in *api.Person) (*api
 
 		return &api.Empty{}, nil
 	}
+
+	id, _ := primitive.ObjectIDFromHex(in.Id)
+
 	if _, ok := d.Data[bson.ObjectIdHex(in.Id)]; ok {
 		d.Data[bson.ObjectIdHex(in.Id)].Name = in.Name
 		d.Data[bson.ObjectIdHex(in.Id)].Age = in.Age
@@ -138,7 +142,7 @@ func (d *DataFromMem) UpsertOnePerson(ctx context.Context, in *api.Person) (*api
 		log.Println("Data Updated")
 	} else {
 		d.Data[bson.ObjectIdHex(in.Id)] = &Person{
-			ID:         bson.ObjectIdHex(in.Id),
+			ID:         id,
 			Name:       in.Name,
 			Age:        in.Age,
 			Profession: in.Profession,
@@ -157,6 +161,9 @@ func (d *DataFromMem) UpsertMultiPerson(ctx context.Context, in *api.MultiPerson
 
 			continue
 		}
+
+		id, _ := primitive.ObjectIDFromHex(v.Id)
+
 		if _, ok := d.Data[bson.ObjectIdHex(v.Id)]; ok {
 			d.Data[bson.ObjectIdHex(v.Id)].Name = v.Name
 			d.Data[bson.ObjectIdHex(v.Id)].Age = v.Age
@@ -164,7 +171,7 @@ func (d *DataFromMem) UpsertMultiPerson(ctx context.Context, in *api.MultiPerson
 			log.Println("Data Updated")
 		} else {
 			d.Data[bson.ObjectIdHex(v.Id)] = &Person{
-				ID:         bson.ObjectIdHex(v.Id),
+				ID:         id,
 				Name:       v.Name,
 				Age:        v.Age,
 				Profession: v.Profession,

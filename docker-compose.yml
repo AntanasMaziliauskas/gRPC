@@ -1,0 +1,22 @@
+version: "2.2"
+
+services:
+  
+  node:
+    image: node-newmongo
+    scale: 20
+    depends_on:
+      server:
+        condition: service_started
+
+  server:
+    image: server
+    container_name: serveris
+    ports: 
+      - "7778:7778"
+      - "8080:8080"
+    
+networks:
+    default:
+        external:
+            name: test_net
